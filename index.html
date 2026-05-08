@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FIELD JOURNAL — Kimi</title>
+  <title>FIELD JOURNAL ‚Äî Kimi</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -203,7 +203,7 @@
       transition: color 0.2s;
     }
     .nav a::before {
-      content: '— ';
+      content: '‚Äî ';
       opacity: 0;
       transition: opacity 0.25s;
     }
@@ -1113,14 +1113,183 @@
       .boot__lines { font-size: 11px; }
       .next-page { margin-top: 64px; }
     }
+
+    /* ============ PAGE TEAR (organic torn paper boundary) ============ */
+    /* The tear sits at the bottom of each section (except contact),
+       overlapping into the next section. It represents the bottom of
+       the current page being ripped ‚Äî showing aged paper underside,
+       a jagged fibrous edge, and a soft cast shadow. */
+    section { position: relative; }
+
+    .page-tear {
+      position: absolute;
+      left: -2%;
+      right: -2%;
+      bottom: -56px;            /* extends down into next section */
+      height: 120px;
+      pointer-events: none;
+      z-index: 6;
+      will-change: transform;
+    }
+
+    /* The actual torn paper strip ‚Äî cream backside, ragged top edge */
+    .page-tear__strip {
+      position: absolute;
+      inset: 0;
+      filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.45))
+              drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35));
+    }
+    .page-tear__strip svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+    }
+
+    /* Char/burn accent along the very edge of the tear */
+    .page-tear__char {
+      position: absolute;
+      left: 0; right: 0;
+      top: 0;
+      height: 28px;
+      mix-blend-mode: multiply;
+      opacity: 0.65;
+      pointer-events: none;
+    }
+    .page-tear__char svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      overflow: visible;
+    }
+
+    /* Fine fiber ticks above the main tear (broken pulp suggestion) */
+    .page-tear__fibers {
+      position: absolute;
+      left: 0; right: 0;
+      top: -14px;
+      height: 22px;
+      mix-blend-mode: screen;
+      opacity: 0.55;
+      pointer-events: none;
+    }
+    .page-tear__fibers svg {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      display: block; overflow: visible;
+    }
+
+    /* Subtle organic wobble ‚Äî adds living-paper feel even at rest */
+    @keyframes tearBreathe {
+      0%, 100% { transform: translateY(0) scaleY(1); }
+      50%      { transform: translateY(-1px) scaleY(1.015); }
+    }
+    .page-tear { animation: tearBreathe 7s ease-in-out infinite; }
+
+    /* Intensified state: applied while the section is being scrolled away.
+       The tear "lifts" slightly with a stronger curl shadow, simulating
+       the page being torn in real time. Driven by IntersectionObserver. */
+    .page-tear.is-tearing {
+      animation: tearLift 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    }
+    @keyframes tearLift {
+      0%   { transform: translateY(0)   rotateX(0deg)  scaleY(1); }
+      40%  { transform: translateY(-6px) rotateX(8deg)  scaleY(1.06); }
+      100% { transform: translateY(-3px) rotateX(4deg)  scaleY(1.03); }
+    }
+
+    /* Scroll-progress driven shift: var(--tear-progress) is set per-section
+       by JS as the section approaches viewport exit. Larger value = the
+       tear strip lifts more, the curl shadow intensifies. */
+    .page-tear {
+      --tear-progress: 0;
+      transform-origin: center top;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .page-tear__strip {
+        transform: translateY(calc(var(--tear-progress) * -10px))
+                   rotateX(calc(var(--tear-progress) * 6deg));
+        transform-origin: center top;
+        transition: transform 0.18s cubic-bezier(0.22, 0.61, 0.36, 1);
+      }
+      .page-tear__strip {
+        filter: drop-shadow(0 calc(12px + var(--tear-progress) * 14px)
+                              calc(18px + var(--tear-progress) * 10px)
+                              rgba(0, 0, 0, calc(0.45 + var(--tear-progress) * 0.2)))
+                drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35));
+        transition: filter 0.18s cubic-bezier(0.22, 0.61, 0.36, 1),
+                    transform 0.18s cubic-bezier(0.22, 0.61, 0.36, 1);
+      }
+    }
+
+    /* Reduced motion: skip wobble & intensify */
+    @media (prefers-reduced-motion: reduce) {
+      .page-tear { animation: none; }
+      .page-tear.is-tearing { animation: none; }
+    }
+
+    /* Mobile: smaller tear footprint */
+    @media (max-width: 720px) {
+      .page-tear { height: 80px; bottom: -36px; }
+    }
   </style>
 </head>
 
 <body class="boot-locked">
 
+  <!-- ============ SVG DEFS (paper tear filters & gradients) ============ -->
+  <svg class="svg-defs" aria-hidden="true" focusable="false"
+       width="0" height="0"
+       style="position:absolute; pointer-events:none;">
+    <defs>
+      <!-- Organic tear edge: turbulence + displacement gives ragged, fibrous line -->
+      <filter id="paper-tear" x="-10%" y="-50%" width="120%" height="200%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.012 0.06"
+                      numOctaves="3" seed="7" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="34"
+                           xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <!-- Secondary tear (smaller wobble, used on the section boundary fibers) -->
+      <filter id="paper-tear-fine" x="-10%" y="-50%" width="120%" height="200%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.04 0.18"
+                      numOctaves="2" seed="13" result="noise2"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise2" scale="10"
+                           xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <!-- Subtle paper grain for the torn-piece backside -->
+      <filter id="paper-grain" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3"/>
+        <feColorMatrix values="0 0 0 0 0.94
+                               0 0 0 0 0.90
+                               0 0 0 0 0.78
+                               0 0 0 0.18 0"/>
+        <feComposite in2="SourceGraphic" operator="in"/>
+        <feBlend in="SourceGraphic" mode="multiply"/>
+      </filter>
+      <!-- Aged cream paper gradient (used as fill for the torn backside) -->
+      <linearGradient id="paper-cream" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#3a2618" stop-opacity="0.85"/>
+        <stop offset="6%"   stop-color="#5a3a22" stop-opacity="0.75"/>
+        <stop offset="14%"  stop-color="#a07a4a"/>
+        <stop offset="35%"  stop-color="#d8c094"/>
+        <stop offset="65%"  stop-color="#e8d4a6"/>
+        <stop offset="100%" stop-color="#c9a876"/>
+      </linearGradient>
+      <!-- Char/sepia edge accent -->
+      <linearGradient id="paper-char" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"  stop-color="#1a0e08" stop-opacity="0.6"/>
+        <stop offset="40%" stop-color="#5a2e18" stop-opacity="0.3"/>
+        <stop offset="100%" stop-color="#8a4a28" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
   <!-- ============ BOOT SCREEN (game-style loading) ============ -->
   <div class="boot" id="boot" role="dialog" aria-label="loading screen">
-    <div class="boot__brand">FIELD JOURNAL · v0.1</div>
+    <div class="boot__brand">FIELD JOURNAL ¬∑ v0.1</div>
 
     <div class="boot__compass" aria-hidden="true">
       <svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
@@ -1135,7 +1304,7 @@
 
     <div class="boot__inner">
       <h1 class="boot__title">Field Journal</h1>
-      <p class="boot__sub">— AN EXPLORER'S PORTFOLIO —</p>
+      <p class="boot__sub">‚Äî AN EXPLORER'S PORTFOLIO ‚Äî</p>
 
       <div class="boot__lines" id="boot-lines"></div>
 
@@ -1167,15 +1336,15 @@
       <div class="cursor__lock">LOCK</div>
     </div>
     <div class="cursor__coord" id="cursor-coord">
-      <div id="coord-lat">N 35°42'18&quot;</div>
-      <div id="coord-lng">E 139°46'02&quot;</div>
+      <div id="coord-lat">N 35¬∞42'18&quot;</div>
+      <div id="coord-lng">E 139¬∞46'02&quot;</div>
     </div>
   </div>
 
   <!-- ============ HUD (FIXED) ============ -->
   <div class="hud">
     <div class="status" aria-label="explorer status">
-      <div class="status__label" id="status-label">EXPLORER · LV.01</div>
+      <div class="status__label" id="status-label">EXPLORER ¬∑ LV.01</div>
       <div class="status__bar"><div class="status__bar-fill" id="status-fill"></div></div>
       <div class="status__pct" id="status-pct">EXP 0%</div>
     </div>
@@ -1239,72 +1408,116 @@
 
     <!-- copy -->
     <div class="hero__copy reveal">
-      <div class="hero__eyebrow">— FIELD JOURNAL · ENTRY 001 —</div>
+      <div class="hero__eyebrow">‚Äî FIELD JOURNAL ¬∑ ENTRY 001 ‚Äî</div>
       <h1 class="hero__title">Welcome, traveler.</h1>
       <p class="hero__lead">
-        ここは Kimi のフィールドジャーナル。<br />
-        惑星をひとつずつ訪ねて、これまで歩いた道のりを記録した場所です。<br />
-        次の目的地へ、ゆっくり進んでください。
+        „Åì„Åì„ÅØ Kimi „ÅÆ„Éï„Ç£„Éº„É´„Éâ„Ç∏„É£„Éº„Éä„É´„ÄÇ<br />
+        ÊÉëÊòü„Çí„Å≤„Å®„Å§„Åö„Å§Ë®™„Å≠„Å¶„ÄÅ„Åì„Çå„Åæ„ÅßÊ≠©„ÅÑ„ÅüÈÅì„ÅÆ„Çä„ÇíË®òÈå≤„Åó„ÅüÂ†¥ÊâÄ„Åß„Åô„ÄÇ<br />
+        Ê¨°„ÅÆÁõÆÁöÑÂú∞„Å∏„ÄÅ„ÇÜ„Å£„Åè„ÇäÈÄ≤„Çì„Åß„Åè„Å†„Åï„ÅÑ„ÄÇ
       </p>
     </div>
 
     <a class="next-page" href="#mission">
       <span class="next-page__label">TURN TO NEXT PAGE</span>
       <span class="next-page__line"></span>
-      <span class="next-page__target">// 02 — MISSION</span>
+      <span class="next-page__target">// 02 ‚Äî MISSION</span>
     </a>
 
-    <div class="page-corner">— page 01 / 05 —</div>
+    <div class="page-corner">‚Äî page 01 / 05 ‚Äî</div>
+
+    <!-- Organic torn paper boundary (to next page) -->
+    <div class="page-tear" aria-hidden="true" data-tear="01">
+      <div class="page-tear__strip">
+        <svg viewBox="0 0 100 6" preserveAspectRatio="none">
+          <path d="M -2 1.2 L 102 1.2 L 102 7 L -2 7 Z"
+                fill="url(#paper-cream)" filter="url(#paper-tear)"/>
+        </svg>
+      </div>
+      <div class="page-tear__char">
+        <svg viewBox="0 0 100 2" preserveAspectRatio="none">
+          <path d="M -2 0.4 L 102 0.4 L 102 1.6 L -2 1.6 Z"
+                fill="url(#paper-char)" filter="url(#paper-tear-fine)"/>
+        </svg>
+      </div>
+      <div class="page-tear__fibers">
+        <svg viewBox="0 0 100 3" preserveAspectRatio="none">
+          <path d="M -2 1.6 L 102 1.6 L 102 2.4 L -2 2.4 Z"
+                fill="url(#paper-cream)" filter="url(#paper-tear-fine)" opacity="0.7"/>
+        </svg>
+      </div>
+    </div>
   </section>
 
   <!-- ============ MISSION ============ -->
   <section class="mission" id="mission">
     <header class="section-head reveal">
       <span class="section-head__num">// 02</span>
-      <h2 class="section-head__title">なぜ今、オリジナルHPなのか</h2>
-      <span class="section-head__caption">WHY ORIGINAL · 03 ENTRIES</span>
+      <h2 class="section-head__title">„Å™„Åú‰ªä„ÄÅ„Ç™„É™„Ç∏„Éä„É´HP„Å™„ÅÆ„Åã</h2>
+      <span class="section-head__caption">WHY ORIGINAL ¬∑ 03 ENTRIES</span>
     </header>
 
     <p class="mission__lead reveal reveal--d1">
-      テンプレートが氾濫する時代だからこそ、<br />
-      ひとつずつ手で組み立てるHPには、別の役割があると考えています。
+      „ÉÜ„É≥„Éó„É¨„Éº„Éà„ÅåÊ∞æÊø´„Åô„ÇãÊôÇ‰ª£„Å†„Åã„Çâ„Åì„Åù„ÄÅ<br />
+      „Å≤„Å®„Å§„Åö„Å§Êâã„ÅßÁµÑ„ÅøÁ´ã„Å¶„ÇãHP„Å´„ÅØ„ÄÅÂà•„ÅÆÂΩπÂâ≤„Åå„ÅÇ„Çã„Å®ËÄÉ„Åà„Å¶„ÅÑ„Åæ„Åô„ÄÇ
     </p>
 
     <div class="reasons reveal reveal--d2">
       <article class="reason">
         <div class="reason__num">01</div>
-        <h3 class="reason__title">第一印象は、3秒で決まる</h3>
+        <h3 class="reason__title">Á¨¨‰∏ÄÂç∞Ë±°„ÅØ„ÄÅ3Áßí„ÅßÊ±∫„Åæ„Çã</h3>
         <p class="reason__body">
-          色、余白、フォントの選び方──そのひとつひとつが訪問者の印象になる。テンプレが量産する整った無個性さでは、伝わらないものがあります。
+          Ëâ≤„ÄÅ‰ΩôÁôΩ„ÄÅ„Éï„Ç©„É≥„Éà„ÅÆÈÅ∏„Å≥Êñπ‚îÄ‚îÄ„Åù„ÅÆ„Å≤„Å®„Å§„Å≤„Å®„Å§„ÅåË®™ÂïèËÄÖ„ÅÆÂç∞Ë±°„Å´„Å™„Çã„ÄÇ„ÉÜ„É≥„Éó„É¨„ÅåÈáèÁî£„Åô„ÇãÊï¥„Å£„ÅüÁÑ°ÂÄãÊÄß„Åï„Åß„ÅØ„ÄÅ‰ºù„Çè„Çâ„Å™„ÅÑ„ÇÇ„ÅÆ„Åå„ÅÇ„Çä„Åæ„Åô„ÄÇ
         </p>
       </article>
       <article class="reason">
         <div class="reason__num">02</div>
-        <h3 class="reason__title">「らしさ」は装飾ではなく構造</h3>
+        <h3 class="reason__title">„Äå„Çâ„Åó„Åï„Äç„ÅØË£ÖÈ£æ„Åß„ÅØ„Å™„ÅèÊßãÈÄ†</h3>
         <p class="reason__body">
-          あなたの仕事の温度や、お客さんへの丁寧さの密度。それはバナーや写真ではなく、ページの構造そのものに宿ります。だから一緒に「らしさ」を探すところから始めます。
+          „ÅÇ„Å™„Åü„ÅÆ‰ªï‰∫ã„ÅÆÊ∏©Â∫¶„ÇÑ„ÄÅ„ÅäÂÆ¢„Åï„Çì„Å∏„ÅÆ‰∏ÅÂØß„Åï„ÅÆÂØÜÂ∫¶„ÄÇ„Åù„Çå„ÅØ„Éê„Éä„Éº„ÇÑÂÜôÁúü„Åß„ÅØ„Å™„Åè„ÄÅ„Éö„Éº„Ç∏„ÅÆÊßãÈÄ†„Åù„ÅÆ„ÇÇ„ÅÆ„Å´ÂÆø„Çä„Åæ„Åô„ÄÇ„Å†„Åã„Çâ‰∏ÄÁ∑í„Å´„Äå„Çâ„Åó„Åï„Äç„ÇíÊé¢„Åô„Å®„Åì„Çç„Åã„ÇâÂßã„ÇÅ„Åæ„Åô„ÄÇ
         </p>
       </article>
       <article class="reason">
         <div class="reason__num">03</div>
-        <h3 class="reason__title">滞在したくなる体験を</h3>
+        <h3 class="reason__title">ÊªûÂú®„Åó„Åü„Åè„Å™„Çã‰ΩìÈ®ì„Çí</h3>
         <p class="reason__body">
-          読んで閉じるサイトと、また訪れたくなるサイトの差は「体験」にあります。世界観を持ったHPは、コンテンツが同じでも記憶に残る時間を長くします。
+          Ë™≠„Çì„ÅßÈñâ„Åò„Çã„Çµ„Ç§„Éà„Å®„ÄÅ„Åæ„ÅüË®™„Çå„Åü„Åè„Å™„Çã„Çµ„Ç§„Éà„ÅÆÂ∑Æ„ÅØ„Äå‰ΩìÈ®ì„Äç„Å´„ÅÇ„Çä„Åæ„Åô„ÄÇ‰∏ñÁïåË¶≥„ÇíÊåÅ„Å£„ÅüHP„ÅØ„ÄÅ„Ç≥„É≥„ÉÜ„É≥„ÉÑ„ÅåÂêå„Åò„Åß„ÇÇË®òÊÜ∂„Å´ÊÆã„ÇãÊôÇÈñì„ÇíÈï∑„Åè„Åó„Åæ„Åô„ÄÇ
         </p>
       </article>
     </div>
 
     <p class="mission__close reveal reveal--d3">
-      だから、まずあなたの話を聞かせてください。<br />
-      そこから、世界観を一緒に作っていきます。
+      „Å†„Åã„Çâ„ÄÅ„Åæ„Åö„ÅÇ„Å™„Åü„ÅÆË©±„ÇíËÅû„Åã„Åõ„Å¶„Åè„Å†„Åï„ÅÑ„ÄÇ<br />
+      „Åù„Åì„Åã„Çâ„ÄÅ‰∏ñÁïåË¶≥„Çí‰∏ÄÁ∑í„Å´‰Ωú„Å£„Å¶„ÅÑ„Åç„Åæ„Åô„ÄÇ
     </p>
 
     <a class="next-page" href="#profile">
       <span class="next-page__label">TURN TO NEXT PAGE</span>
       <span class="next-page__line"></span>
-      <span class="next-page__target">// 03 — PROFILE</span>
+      <span class="next-page__target">// 03 ‚Äî PROFILE</span>
     </a>
-    <div class="page-corner">— page 02 / 05 —</div>
+    <div class="page-corner">‚Äî page 02 / 05 ‚Äî</div>
+
+    <!-- Organic torn paper boundary (to next page) -->
+    <div class="page-tear" aria-hidden="true" data-tear="02">
+      <div class="page-tear__strip">
+        <svg viewBox="0 0 100 6" preserveAspectRatio="none">
+          <path d="M -2 1.2 L 102 1.2 L 102 7 L -2 7 Z"
+                fill="url(#paper-cream)" filter="url(#paper-tear)"/>
+        </svg>
+      </div>
+      <div class="page-tear__char">
+        <svg viewBox="0 0 100 2" preserveAspectRatio="none">
+          <path d="M -2 0.4 L 102 0.4 L 102 1.6 L -2 1.6 Z"
+                fill="url(#paper-char)" filter="url(#paper-tear-fine)"/>
+        </svg>
+      </div>
+      <div class="page-tear__fibers">
+        <svg viewBox="0 0 100 3" preserveAspectRatio="none">
+          <path d="M -2 1.6 L 102 1.6 L 102 2.4 L -2 2.4 Z"
+                fill="url(#paper-cream)" filter="url(#paper-tear-fine)" opacity="0.7"/>
+        </svg>
+      </div>
+    </div>
   </section>
 
   <!-- ============ PROFILE ============ -->
@@ -1312,7 +1525,7 @@
     <header class="section-head reveal">
       <span class="section-head__num">// 03</span>
       <h2 class="section-head__title">Explorer profile</h2>
-      <span class="section-head__caption">DOSSIER · BASE CAMP</span>
+      <span class="section-head__caption">DOSSIER ¬∑ BASE CAMP</span>
     </header>
 
     <div class="dossier reveal reveal--d1">
@@ -1332,27 +1545,49 @@
           <tr><td>BASE</td><td>Tokyo, Japan</td></tr>
           <tr><td>JOURNEY START</td><td>2024</td></tr>
           <tr><td>EQUIPMENT</td><td>HTML / CSS / JavaScript / Figma</td></tr>
-          <tr><td>CURRENT QUEST</td><td>オリジナルHP制作</td></tr>
-          <tr><td>INTERESTS</td><td>能楽・狂言、自然、静かな朝</td></tr>
+          <tr><td>CURRENT QUEST</td><td>„Ç™„É™„Ç∏„Éä„É´HPÂà∂‰Ωú</td></tr>
+          <tr><td>INTERESTS</td><td>ËÉΩÊ•Ω„ÉªÁãÇË®Ä„ÄÅËá™ÁÑ∂„ÄÅÈùô„Åã„Å™Êúù</td></tr>
         </tbody>
       </table>
     </div>
 
     <div class="bio reveal reveal--d2">
       <p class="bio__lead">
-        もともとは別の分野で、人と向き合う仕事をしていました。
+        „ÇÇ„Å®„ÇÇ„Å®„ÅØÂà•„ÅÆÂàÜÈáé„Åß„ÄÅ‰∫∫„Å®Âêë„ÅçÂêà„ÅÜ‰ªï‰∫ã„Çí„Åó„Å¶„ÅÑ„Åæ„Åó„Åü„ÄÇ
       </p>
       <p class="bio__body">
-        Webの世界に入ったのは2024年。コードはまだ学びの途中ですが、だからこそ依頼者と一緒に手を動かしながら、納得のいく形を一緒に探していくスタイルを大切にしています。技術的な完成度だけでなく、「ここに来るとほっとする」体験設計を目指して。
+        Web„ÅÆ‰∏ñÁïå„Å´ÂÖ•„Å£„Åü„ÅÆ„ÅØ2024Âπ¥„ÄÇ„Ç≥„Éº„Éâ„ÅØ„Åæ„Å†Â≠¶„Å≥„ÅÆÈÄî‰∏≠„Åß„Åô„Åå„ÄÅ„Å†„Åã„Çâ„Åì„Åù‰æùÈ†ºËÄÖ„Å®‰∏ÄÁ∑í„Å´Êâã„ÇíÂãï„Åã„Åó„Å™„Åå„Çâ„ÄÅÁ¥çÂæó„ÅÆ„ÅÑ„ÅèÂΩ¢„Çí‰∏ÄÁ∑í„Å´Êé¢„Åó„Å¶„ÅÑ„Åè„Çπ„Çø„Ç§„É´„ÇíÂ§ßÂàá„Å´„Åó„Å¶„ÅÑ„Åæ„Åô„ÄÇÊäÄË°ìÁöÑ„Å™ÂÆåÊàêÂ∫¶„Å†„Åë„Åß„Å™„Åè„ÄÅ„Äå„Åì„Åì„Å´Êù•„Çã„Å®„Åª„Å£„Å®„Åô„Çã„Äç‰ΩìÈ®ìË®≠Ë®à„ÇíÁõÆÊåá„Åó„Å¶„ÄÇ
       </p>
     </div>
 
     <a class="next-page" href="#works">
       <span class="next-page__label">TURN TO NEXT PAGE</span>
       <span class="next-page__line"></span>
-      <span class="next-page__target">// 04 — MAP</span>
+      <span class="next-page__target">// 04 ‚Äî MAP</span>
     </a>
-    <div class="page-corner">— page 03 / 05 —</div>
+    <div class="page-corner">‚Äî page 03 / 05 ‚Äî</div>
+
+    <!-- Organic torn paper boundary (to next page) -->
+    <div class="page-tear" aria-hidden="true" data-tear="03">
+      <div class="page-tear__strip">
+        <svg viewBox="0 0 100 6" preserveAspectRatio="none">
+          <path d="M -2 1.2 L 102 1.2 L 102 7 L -2 7 Z"
+                fill="url(#paper-cream)" filter="url(#paper-tear)"/>
+        </svg>
+      </div>
+      <div class="page-tear__char">
+        <svg viewBox="0 0 100 2" preserveAspectRatio="none">
+          <path d="M -2 0.4 L 102 0.4 L 102 1.6 L -2 1.6 Z"
+                fill="url(#paper-char)" filter="url(#paper-tear-fine)"/>
+        </svg>
+      </div>
+      <div class="page-tear__fibers">
+        <svg viewBox="0 0 100 3" preserveAspectRatio="none">
+          <path d="M -2 1.6 L 102 1.6 L 102 2.4 L -2 2.4 Z"
+                fill="url(#paper-cream)" filter="url(#paper-tear-fine)" opacity="0.7"/>
+        </svg>
+      </div>
+    </div>
   </section>
 
   <!-- ============ WORKS ============ -->
@@ -1360,17 +1595,17 @@
     <header class="section-head reveal">
       <span class="section-head__num">// 04</span>
       <h2 class="section-head__title">Discovered planets</h2>
-      <span class="section-head__caption">3 charted · 1 active</span>
+      <span class="section-head__caption">3 charted ¬∑ 1 active</span>
     </header>
 
     <div class="planet-grid reveal reveal--d1">
       <article class="planet-card">
         <div class="planet-card__orb planet-card__orb--1"></div>
         <div class="planet-card__num">PLANET 01</div>
-        <h3 class="planet-card__title">カウンセリングオフィス HP</h3>
-        <div class="planet-card__meta">HTML / CSS · 2024</div>
+        <h3 class="planet-card__title">„Ç´„Ç¶„É≥„Çª„É™„É≥„Ç∞„Ç™„Éï„Ç£„Çπ HP</h3>
+        <div class="planet-card__meta">HTML / CSS ¬∑ 2024</div>
         <p class="planet-card__desc">
-          落ち着いたトーンと読みやすさを軸にした、個人カウンセラー向けのランディングページ。
+          ËêΩ„Å°ÁùÄ„ÅÑ„Åü„Éà„Éº„É≥„Å®Ë™≠„Åø„ÇÑ„Åô„Åï„ÇíËª∏„Å´„Åó„Åü„ÄÅÂÄã‰∫∫„Ç´„Ç¶„É≥„Çª„É©„ÉºÂêë„Åë„ÅÆ„É©„É≥„Éá„Ç£„É≥„Ç∞„Éö„Éº„Ç∏„ÄÇ
         </p>
         <a href="#" class="planet-card__visit">VISIT &rarr;</a>
       </article>
@@ -1379,9 +1614,9 @@
         <div class="planet-card__orb planet-card__orb--2"></div>
         <div class="planet-card__num">PLANET 02</div>
         <h3 class="planet-card__title">Uncharted</h3>
-        <div class="planet-card__meta">— · COMING SOON</div>
+        <div class="planet-card__meta">‚Äî ¬∑ COMING SOON</div>
         <p class="planet-card__desc">
-          現在探査中。次の制作実績がここに着陸予定です。
+          ÁèæÂú®Êé¢Êüª‰∏≠„ÄÇÊ¨°„ÅÆÂà∂‰ΩúÂÆüÁ∏æ„Åå„Åì„Åì„Å´ÁùÄÈô∏‰∫àÂÆö„Åß„Åô„ÄÇ
         </p>
         <span class="planet-card__lock-tag">EXPLORATION IN PROGRESS</span>
       </article>
@@ -1390,9 +1625,9 @@
         <div class="planet-card__orb planet-card__orb--3"></div>
         <div class="planet-card__num">PLANET 03</div>
         <h3 class="planet-card__title">Uncharted</h3>
-        <div class="planet-card__meta">— · COMING SOON</div>
+        <div class="planet-card__meta">‚Äî ¬∑ COMING SOON</div>
         <p class="planet-card__desc">
-          まだ地図にない惑星。新しい挑戦を準備中です。
+          „Åæ„Å†Âú∞Âõ≥„Å´„Å™„ÅÑÊÉëÊòü„ÄÇÊñ∞„Åó„ÅÑÊåëÊà¶„ÇíÊ∫ñÂÇô‰∏≠„Åß„Åô„ÄÇ
         </p>
         <span class="planet-card__lock-tag">EXPLORATION IN PROGRESS</span>
       </article>
@@ -1401,9 +1636,31 @@
     <a class="next-page" href="#contact">
       <span class="next-page__label">TURN TO NEXT PAGE</span>
       <span class="next-page__line"></span>
-      <span class="next-page__target">// 05 — SIGNAL</span>
+      <span class="next-page__target">// 05 ‚Äî SIGNAL</span>
     </a>
-    <div class="page-corner">— page 04 / 05 —</div>
+    <div class="page-corner">‚Äî page 04 / 05 ‚Äî</div>
+
+    <!-- Organic torn paper boundary (to next page) -->
+    <div class="page-tear" aria-hidden="true" data-tear="04">
+      <div class="page-tear__strip">
+        <svg viewBox="0 0 100 6" preserveAspectRatio="none">
+          <path d="M -2 1.2 L 102 1.2 L 102 7 L -2 7 Z"
+                fill="url(#paper-cream)" filter="url(#paper-tear)"/>
+        </svg>
+      </div>
+      <div class="page-tear__char">
+        <svg viewBox="0 0 100 2" preserveAspectRatio="none">
+          <path d="M -2 0.4 L 102 0.4 L 102 1.6 L -2 1.6 Z"
+                fill="url(#paper-char)" filter="url(#paper-tear-fine)"/>
+        </svg>
+      </div>
+      <div class="page-tear__fibers">
+        <svg viewBox="0 0 100 3" preserveAspectRatio="none">
+          <path d="M -2 1.6 L 102 1.6 L 102 2.4 L -2 2.4 Z"
+                fill="url(#paper-cream)" filter="url(#paper-tear-fine)" opacity="0.7"/>
+        </svg>
+      </div>
+    </div>
   </section>
 
   <!-- ============ CONTACT ============ -->
@@ -1412,11 +1669,11 @@
       <div class="signal__icon" aria-hidden="true">
         <span class="signal__icon-dot"></span>
       </div>
-      <div class="signal__label">— SIGNAL · 05 —</div>
+      <div class="signal__label">‚Äî SIGNAL ¬∑ 05 ‚Äî</div>
       <h2 class="signal__title">Send a transmission</h2>
       <p class="signal__lead">
-        新しい依頼や、ちょっとした感想でも大丈夫です。<br />
-        以下のチャンネルから信号を送ってください。
+        Êñ∞„Åó„ÅÑ‰æùÈ†º„ÇÑ„ÄÅ„Å°„Çá„Å£„Å®„Åó„ÅüÊÑüÊÉ≥„Åß„ÇÇÂ§ß‰∏àÂ§´„Åß„Åô„ÄÇ<br />
+        ‰ª•‰∏ã„ÅÆ„ÉÅ„É£„É≥„Éç„É´„Åã„Çâ‰ø°Âè∑„ÇíÈÄÅ„Å£„Å¶„Åè„Å†„Åï„ÅÑ„ÄÇ
       </p>
 
       <div class="signal__channels">
@@ -1426,21 +1683,21 @@
         </a>
         <a class="channel" href="#">
           <span class="channel__type">GITHUB</span>
-          <span class="channel__addr">github.com/—</span>
+          <span class="channel__addr">github.com/‚Äî</span>
         </a>
         <a class="channel" href="#">
           <span class="channel__type">SOCIAL</span>
-          <span class="channel__addr">@—</span>
+          <span class="channel__addr">@‚Äî</span>
         </a>
       </div>
     </div>
 
     <div class="footer-coords reveal reveal--d1">
-      <span>BASE CAMP · N 35°42'18&quot; / E 139°46'02&quot;</span>
-      <span>© Kimi · FIELD JOURNAL 2026</span>
+      <span>BASE CAMP ¬∑ N 35¬∞42'18&quot; / E 139¬∞46'02&quot;</span>
+      <span>¬© Kimi ¬∑ FIELD JOURNAL 2026</span>
     </div>
 
-    <div class="page-corner">— page 05 / 05 — END —</div>
+    <div class="page-corner">‚Äî page 05 / 05 ‚Äî END ‚Äî</div>
   </section>
 
   <script>
@@ -1497,7 +1754,7 @@
         const minTotal = (v - deg) * 60;
         const min = Math.floor(minTotal);
         const sec = Math.floor((minTotal - min) * 60);
-        return `${prefix} ${deg}°${String(min).padStart(2,'0')}'${String(sec).padStart(2,'0')}"`;
+        return `${prefix} ${deg}¬∞${String(min).padStart(2,'0')}'${String(sec).padStart(2,'0')}"`;
       }
 
       function loop() {
@@ -1587,7 +1844,7 @@
         if (progress >= 40) lv = 3;
         if (progress >= 60) lv = 4;
         if (progress >= 80) lv = 5;
-        label.textContent = 'EXPLORER · LV.0' + lv;
+        label.textContent = 'EXPLORER ¬∑ LV.0' + lv;
       }
 
       let ticking = false;
@@ -1686,6 +1943,77 @@
       }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
 
       items.forEach(item => observer.observe(item));
+    })();
+
+    /* ============ PAGE TEAR (scroll-driven progress) ============
+       For each .page-tear, calculate how far the parent section is
+       through "exiting" the viewport. Drive a CSS variable from 0 (at rest)
+       to 1 (parent section fully scrolled past). The CSS uses this var to
+       lift, rotate, and shadow the tear strip ‚Äî giving a real-time
+       "page being torn" feel as the user scrolls. */
+    (function() {
+      const tears = Array.from(document.querySelectorAll('.page-tear'));
+      if (!tears.length) return;
+
+      // Cache parent section per tear element (parent is always the section)
+      const items = tears.map(tear => ({
+        el: tear,
+        section: tear.closest('section')
+      }));
+
+      const reduceMotion = window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduceMotion) return;
+
+      let ticking = false;
+
+      function update() {
+        const vh = window.innerHeight;
+        items.forEach(({ el, section }) => {
+          if (!section) return;
+          const rect = section.getBoundingClientRect();
+          // The section is "exiting" when its bottom approaches the viewport top.
+          // tear-zone: the last 60% of the section's height while scrolling out.
+          // progress = 0 when section bottom is at viewport bottom or below
+          // progress = 1 when section bottom has reached viewport top
+          const sectionH = rect.height;
+          const exitStart = vh;          // px from top of viewport at which exit "begins"
+          const exitEnd   = 0;           // px from top of viewport at which exit completes
+          // distance section bottom is from viewport top (positive = still below top)
+          const bottomFromTop = rect.bottom;
+          let progress;
+          if (bottomFromTop >= exitStart) {
+            progress = 0;
+          } else if (bottomFromTop <= exitEnd) {
+            progress = 1;
+          } else {
+            progress = 1 - (bottomFromTop - exitEnd) / (exitStart - exitEnd);
+          }
+          // Apply easing for organic feel (cubic ease-in-out)
+          const eased = progress < 0.5
+            ? 4 * progress * progress * progress
+            : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+          el.style.setProperty('--tear-progress', eased.toFixed(3));
+
+          // Pulse the "is-tearing" class only when progress crosses 0.15 ‚Üí 0.6 (entering)
+          if (eased > 0.15 && eased < 0.85 && !el.classList.contains('is-tearing')) {
+            el.classList.add('is-tearing');
+          } else if ((eased <= 0.15 || eased >= 0.85) && el.classList.contains('is-tearing')) {
+            el.classList.remove('is-tearing');
+          }
+        });
+        ticking = false;
+      }
+
+      window.addEventListener('scroll', () => {
+        if (!ticking) {
+          requestAnimationFrame(update);
+          ticking = true;
+        }
+      }, { passive: true });
+      window.addEventListener('resize', update, { passive: true });
+      update();
     })();
   </script>
 </body>
