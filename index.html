@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FIELD JOURNAL — Kimi</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Serif:wght@400;500&family=Zen+Kaku+Gothic+New:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ============ RESET & TOKENS ============ */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --c-sky-top: #1d3a5f;
+      --c-sky-mid: #4a6b85;
+      --c-sky-low: #d4854a;
+      --c-sky-bottom: #e8a76a;
+      --c-mt-far: #5a6478;
+      --c-mt-mid: #3f4a58;
+      --c-mt-near: #2a3340;
+      --c-ground: #4a2c1e;
+      --c-ground-dark: #2a1810;
+      --c-cream: #f4ead4;
+      --c-cream-dim: #c9a876;
+      --c-amber: #e8a76a;
+      --c-coral: #d4654a;
+      --c-fire: #f4c84a;
+      --c-dark: #1a0e08;
+      --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+      --font-serif: 'IBM Plex Serif', 'Noto Serif JP', serif;
+      --font-jp: 'Zen Kaku Gothic New', 'Noto Sans JP', sans-serif;
+    }
+
+    body {
+      background: var(--c-dark);
+      color: var(--c-cream);
+      font-family: var(--font-jp);
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    @media (hover: none) {
+      body { cursor: auto; }
+      .cursor { display: none !important; }
+    }
+
+    a { color: var(--c-amber); text-decoration: none; }
+    a:hover { color: var(--c-cream); }
+
+    /* ============ CUSTOM CURSOR ============ */
+    .cursor {
+      position: fixed;
+      top: 0; left: 0;
+      width: 56px; height: 56px;
+      pointer-events: none;
+      z-index: 9999;
+      mix-blend-mode: normal;
+      will-change: transform;
+    }
+    .cursor__compass {
+      position: relative;
+      width: 56px; height: 56px;
+      transition: transform 0.12s ease;
+    }
+    .cursor.is-click .cursor__compass { transform: scale(0.85); }
+    .cursor__ring {
+      position: absolute; inset: 4px;
+      border: 1px solid var(--c-cream);
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, rgba(244,234,212,0.92), rgba(201,168,118,0.85));
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .cursor.is-hover .cursor__ring {
+      border-color: var(--c-amber);
+      box-shadow: 0 0 0 4px rgba(232,167,106,0.18), 0 0 16px rgba(232,167,106,0.45);
+    }
+    .cursor__needle {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 32px; height: 32px;
+      transform: translate(-50%, -50%);
+      transition: transform 0.18s ease;
+    }
+    .cursor__needle svg { width: 100%; height: 100%; display: block; }
+    .cursor__cardinals {
+      position: absolute; inset: 4px;
+      pointer-events: none;
+    }
+    .cursor__cardinals span {
+      position: absolute;
+      font: 500 7px/1 var(--font-mono);
+      color: var(--c-dark);
+    }
+    .cursor__cardinals .n { top: 4px; left: 50%; transform: translateX(-50%); }
+    .cursor__cardinals .s { bottom: 4px; left: 50%; transform: translateX(-50%); opacity: 0.45; }
+    .cursor__cardinals .e { top: 50%; right: 4px; transform: translateY(-50%); opacity: 0.45; }
+    .cursor__cardinals .w { top: 50%; left: 4px; transform: translateY(-50%); opacity: 0.45; }
+
+    .cursor__coord {
+      position: absolute;
+      left: 64px; top: 8px;
+      font: 400 10px/1.4 var(--font-mono);
+      color: var(--c-cream);
+      letter-spacing: 0.1em;
+      white-space: nowrap;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+    }
+    .cursor__lock {
+      position: absolute;
+      top: -22px; left: 50%;
+      transform: translateX(-50%);
+      padding: 3px 8px;
+      background: rgba(26,14,8,0.75);
+      color: var(--c-amber);
+      font: 500 9px/1 var(--font-mono);
+      letter-spacing: 0.25em;
+      opacity: 0;
+      transition: opacity 0.18s;
+    }
+    .cursor.is-hover .cursor__lock { opacity: 1; }
+
+    .cursor__brackets {
+      position: absolute;
+      inset: -8px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+    }
+    .cursor.is-hover .cursor__brackets { opacity: 1; }
+    .cursor__brackets::before,
+    .cursor__brackets::after,
+    .cursor__brackets > span::before,
+    .cursor__brackets > span::after {
+      content: ''; position: absolute;
+      width: 10px; height: 10px;
+      border-color: var(--c-amber);
+      border-style: solid;
+    }
+    .cursor__brackets::before { top: 0; left: 0; border-width: 1.5px 0 0 1.5px; }
+    .cursor__brackets::after { top: 0; right: 0; border-width: 1.5px 1.5px 0 0; }
+    .cursor__brackets > span::before { content: ''; bottom: 0; left: 0; border-width: 0 0 1.5px 1.5px; position: absolute; width: 10px; height: 10px; }
+    .cursor__brackets > span::after { content: ''; bottom: 0; right: 0; border-width: 0 1.5px 1.5px 0; position: absolute; width: 10px; height: 10px; }
+
+    /* ============ HUD ============ */
+    .hud {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      padding: 24px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+      pointer-events: none;
+      mix-blend-mode: normal;
+    }
+    .hud > * { pointer-events: auto; }
+
+    .status {
+      background: rgba(26,14,8,0.55);
+      backdrop-filter: blur(6px);
+      padding: 10px 14px;
+      border: 1px solid rgba(244,234,212,0.12);
+    }
+    .status__label {
+      font: 500 10px/1 var(--font-mono);
+      letter-spacing: 0.25em;
+      color: var(--c-cream);
+      margin-bottom: 8px;
+    }
+    .status__bar {
+      width: 140px; height: 4px;
+      background: rgba(244,234,212,0.12);
+      overflow: hidden;
+      position: relative;
+    }
+    .status__bar-fill {
+      width: 0%; height: 100%;
+      background: var(--c-amber);
+      box-shadow: 0 0 8px rgba(232,167,106,0.6);
+      transition: width 0.18s linear;
+    }
+    .status__pct {
+      font: 400 9px/1 var(--font-mono);
+      color: var(--c-cream-dim);
+      margin-top: 4px;
+    }
+
+    .nav {
+      display: flex;
+      gap: 28px;
+    }
+    .nav a {
+      font: 500 11px/1 var(--font-mono);
+      letter-spacing: 0.3em;
+      color: var(--c-cream);
+      padding: 6px 0;
+      position: relative;
+      transition: color 0.2s;
+    }
+    .nav a::before {
+      content: '— ';
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .nav a:hover { color: var(--c-amber); }
+    .nav a:hover::before { opacity: 1; }
+
+    /* ============ HERO ============ */
+    .hero {
+      position: relative;
+      height: 100vh;
+      min-height: 720px;
+      overflow: hidden;
+      background: linear-gradient(
+        to bottom,
+        var(--c-sky-top) 0%,
+        var(--c-sky-mid) 35%,
+        var(--c-sky-low) 65%,
+        var(--c-sky-bottom) 95%
+      );
+    }
+
+    .stars { position: absolute; inset: 0; pointer-events: none; }
+    .stars span {
+      position: absolute;
+      width: 2px; height: 2px;
+      background: var(--c-cream);
+      border-radius: 50%;
+      opacity: 0.7;
+      animation: twinkle 4s ease-in-out infinite;
+    }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.85; }
+    }
+
+    .sun {
+      position: absolute;
+      top: 50%; right: 22%;
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #f4d49a 0%, #f4d49a 55%, transparent 70%);
+      box-shadow: 0 0 80px rgba(244,212,154,0.5);
+    }
+
+    .planet-deco {
+      position: absolute;
+      border-radius: 50%;
+    }
+    .planet-deco--1 {
+      top: 18%; left: 18%;
+      width: 64px; height: 64px;
+      background: radial-gradient(circle at 35% 35%, #e8c890, #a06840);
+    }
+    .planet-deco--1::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 110px; height: 12px;
+      border: 1px solid rgba(201,168,118,0.5);
+      border-radius: 50%;
+    }
+    .planet-deco--2 {
+      top: 12%; right: 28%;
+      width: 32px; height: 32px;
+      background: radial-gradient(circle at 35% 35%, #c8a878, #7a5230);
+    }
+
+    .mountains {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%;
+      height: 65%;
+      pointer-events: none;
+    }
+    .mountains svg {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%; height: 100%;
+      display: block;
+    }
+
+    .ground {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%; height: 18%;
+      background: linear-gradient(to bottom, var(--c-ground), var(--c-ground-dark));
+    }
+
+    .camp {
+      position: absolute;
+      bottom: 4%;
+      left: 12%;
+      z-index: 5;
+    }
+    .tent {
+      width: 90px; height: 80px;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+    }
+
+    .campfire {
+      position: absolute;
+      bottom: 5%; left: 24%;
+      width: 50px; height: 60px;
+      z-index: 6;
+    }
+    .campfire__logs {
+      position: absolute;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 38px;
+      height: 8px;
+    }
+    .campfire__logs::before,
+    .campfire__logs::after {
+      content: '';
+      position: absolute;
+      width: 38px; height: 3px;
+      background: #3a2010;
+      border-radius: 2px;
+    }
+    .campfire__logs::before { top: 0; transform: rotate(-8deg); }
+    .campfire__logs::after { top: 4px; transform: rotate(6deg); background: #5a3018; }
+
+    .flame {
+      position: absolute;
+      bottom: 8px; left: 50%;
+      transform: translateX(-50%);
+      width: 20px;
+      height: 32px;
+      background: var(--c-coral);
+      border-radius: 50% 50% 20% 20% / 60% 60% 30% 30%;
+      box-shadow: 0 0 30px rgba(232,129,74,0.6), 0 0 60px rgba(232,167,106,0.35);
+      animation: flicker 0.8s ease-in-out infinite alternate;
+    }
+    .flame::before {
+      content: '';
+      position: absolute;
+      bottom: 4px; left: 50%;
+      transform: translateX(-50%);
+      width: 10px; height: 18px;
+      background: var(--c-fire);
+      border-radius: 50% 50% 20% 20% / 60% 60% 30% 30%;
+    }
+    @keyframes flicker {
+      0% { transform: translateX(-50%) scale(1, 1); }
+      100% { transform: translateX(-50%) scale(1.05, 0.95); }
+    }
+
+    .flag {
+      position: absolute;
+      bottom: 4%;
+      right: 18%;
+      z-index: 4;
+    }
+    .flag__pole {
+      width: 2px; height: 60px;
+      background: #3a2010;
+    }
+    .flag__cloth {
+      position: absolute;
+      top: 0; left: 2px;
+      width: 0; height: 0;
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+      border-left: 22px solid var(--c-coral);
+    }
+
+    .hero__copy {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .hero__eyebrow {
+      font: 500 11px/1 var(--font-mono);
+      letter-spacing: 0.4em;
+      color: var(--c-amber);
+      margin-bottom: 16px;
+    }
+    .hero__title {
+      font: 400 56px/1.1 var(--font-serif);
+      color: var(--c-cream);
+      margin: 0 0 18px;
+      letter-spacing: 0.02em;
+    }
+    .hero__lead {
+      font: 400 14px/1.7 var(--font-jp);
+      color: var(--c-cream-dim);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .scroll-cue {
+      position: absolute;
+      bottom: 32px; left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .scroll-cue__label {
+      font: 500 10px/1 var(--font-mono);
+      letter-spacing: 0.4em;
+      color: var(--c-cream);
+      margin-bottom: 12px;
+    }
+    .scroll-cue__line {
+      width: 1px;
+      height: 40px;
+      margin: 0 auto;
+      background: linear-gradient(to bottom, var(--c-cream), transparent);
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.4; transform: scaleY(0.6); }
+      50% { opacity: 1; transform: scaleY(1); }
+    }
+
+    /* ============ MISSION ============ */
+    .mission {
+      position: relative;
+      min-height: 100vh;
+      padding: 140px 32px 120px;
+      background: linear-gradient(
+        to bottom,
+        var(--c-sky-bottom) 0%,
+        #8a5a48 22%,
+        #4a3a52 65%,
+        var(--c-ground-dark) 100%
+      );
+      overflow: hidden;
+    }
+    .mission::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(1.5px 1.5px at 18% 12%, rgba(244,234,212,0.5), transparent),
+        radial-gradient(1px 1px at 38% 8%, rgba(244,234,212,0.4), transparent),
+        radial-gradient(1.5px 1.5px at 62% 14%, rgba(244,234,212,0.6), transparent),
+        radial-gradient(1px 1px at 82% 6%, rgba(244,234,212,0.45), transparent),
+        radial-gradient(2px 2px at 26% 30%, rgba(244,234,212,0.4), transparent),
+        radial-gradient(1px 1px at 72% 28%, rgba(244,234,212,0.4), transparent);
+      pointer-events: none;
+    }
+
+    .mission__lead {
+      max-width: 720px;
+      margin: 0 auto 80px;
+      text-align: center;
+      font: 400 16px/1.95 var(--font-jp);
+      color: var(--c-cream);
+      position: relative;
+      z-index: 2;
+    }
+
+    .reasons {
+      max-width: 1200px;
+      margin: 0 auto 60px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 32px;
+      position: relative;
+      z-index: 2;
+    }
+    .reason {
+      position: relative;
+      padding: 40px 28px 32px;
+      background: rgba(244,234,212,0.04);
+      border: 1px solid rgba(244,234,212,0.14);
+      transition: transform 0.4s, border-color 0.3s, background 0.3s;
+    }
+    .reason::before {
+      content: '';
+      position: absolute;
+      top: -1px; left: -1px;
+      width: 28px; height: 28px;
+      border-top: 2px solid var(--c-amber);
+      border-left: 2px solid var(--c-amber);
+    }
+    .reason:hover {
+      transform: translateY(-4px);
+      border-color: var(--c-amber);
+      background: rgba(244,234,212,0.08);
+    }
+    .reason__num {
+      font: 500 12px/1 var(--font-mono);
+      letter-spacing: 0.3em;
+      color: var(--c-amber);
+      margin-bottom: 18px;
+    }
+    .reason__title {
+      font: 500 18px/1.45 var(--font-serif);
+      color: var(--c-cream);
+      margin: 0 0 16px;
+    }
+    .reason__body {
+      font: 400 13px/1.85 var(--font-jp);
+      color: var(--c-cream-dim);
+      margin: 0;
+    }
+
+    .mission__close {
+      max-width: 720px;
+      margin: 80px auto 0;
+      text-align: center;
+      font: 400 15px/1.9 var(--font-serif);
+      color: var(--c-cream);
+      font-style: italic;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ============ PROFILE ============ */
+    .profile {
+      position: relative;
+      min-height: 100vh;
+      padding: 140px 32px 120px;
+      background: linear-gradient(
+        to bottom,
+        var(--c-ground-dark) 0%,
+        #1a2438 50%,
+        #0d1a2e 100%
+      );
+      overflow: hidden;
+    }
+    .profile::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(1.5px 1.5px at 14% 22%, rgba(244,234,212,0.5), transparent),
+        radial-gradient(1px 1px at 32% 12%, rgba(244,234,212,0.4), transparent),
+        radial-gradient(2px 2px at 56% 30%, rgba(244,234,212,0.55), transparent),
+        radial-gradient(1px 1px at 78% 18%, rgba(244,234,212,0.45), transparent),
+        radial-gradient(1.5px 1.5px at 88% 50%, rgba(244,234,212,0.5), transparent),
+        radial-gradient(1px 1px at 8% 58%, rgba(244,234,212,0.4), transparent);
+      pointer-events: none;
+    }
+
+    .dossier {
+      max-width: 980px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 56px;
+      align-items: start;
+      position: relative;
+      z-index: 2;
+    }
+    .dossier__photo {
+      position: relative;
+      width: 200px;
+      aspect-ratio: 5 / 6;
+      border: 1px solid var(--c-amber);
+      background: rgba(15,30,50,0.55);
+    }
+    .dossier__photo svg {
+      width: 100%; height: 100%; display: block;
+    }
+    .dossier__photo-frame {
+      position: absolute;
+      top: -8px; left: -8px;
+      width: 24px; height: 24px;
+      border-top: 2px solid var(--c-amber);
+      border-left: 2px solid var(--c-amber);
+    }
+    .dossier__photo::after {
+      content: '';
+      position: absolute;
+      bottom: -8px; right: -8px;
+      width: 24px; height: 24px;
+      border-bottom: 2px solid var(--c-amber);
+      border-right: 2px solid var(--c-amber);
+    }
+
+    .dossier-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .dossier-table td {
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(244,234,212,0.1);
+      vertical-align: top;
+    }
+    .dossier-table td:first-child {
+      width: 40%;
+      font: 500 10px/1.3 var(--font-mono);
+      letter-spacing: 0.2em;
+      color: var(--c-amber);
+      padding-right: 16px;
+    }
+    .dossier-table td:last-child {
+      font: 400 13px/1.5 var(--font-jp);
+      color: var(--c-cream);
+    }
+
+    .bio {
+      max-width: 720px;
+      margin: 80px auto 0;
+      position: relative;
+      z-index: 2;
+    }
+    .bio__lead {
+      font: 400 16px/1.9 var(--font-serif);
+      color: var(--c-cream);
+      margin: 0 0 24px;
+      font-style: italic;
+    }
+    .bio__body {
+      font: 400 14px/2 var(--font-jp);
+      color: var(--c-cream-dim);
+      margin: 0;
+    }
+
+    @media (max-width: 720px) {
+      .dossier { grid-template-columns: 1fr; gap: 32px; }
+      .dossier__photo { margin: 0 auto; }
+    }
+
+    /* ============ WORKS ============ */
+    .works {
+      position: relative;
+      min-height: 100vh;
+      padding: 140px 32px 120px;
+      background: #0d1a2e;
+      overflow: hidden;
+    }
+    .works::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(2px 2px at 12% 22%, rgba(244,234,212,0.7), transparent),
+        radial-gradient(1px 1px at 28% 14%, rgba(244,234,212,0.5), transparent),
+        radial-gradient(1.5px 1.5px at 45% 38%, rgba(244,234,212,0.6), transparent),
+        radial-gradient(1px 1px at 65% 18%, rgba(244,234,212,0.5), transparent),
+        radial-gradient(2px 2px at 82% 28%, rgba(244,234,212,0.7), transparent),
+        radial-gradient(1px 1px at 90% 60%, rgba(244,234,212,0.5), transparent),
+        radial-gradient(1.5px 1.5px at 18% 70%, rgba(244,234,212,0.6), transparent);
+      pointer-events: none;
+    }
+
+    .section-head {
+      max-width: 1200px;
+      margin: 0 auto 80px;
+      display: flex;
+      align-items: baseline;
+      gap: 24px;
+    }
+    .section-head__num {
+      font: 400 14px/1 var(--font-mono);
+      letter-spacing: 0.25em;
+      color: var(--c-amber);
+    }
+    .section-head__title {
+      font: 400 40px/1.2 var(--font-serif);
+      color: var(--c-cream);
+      margin: 0;
+    }
+    .section-head__caption {
+      font: 400 12px/1.5 var(--font-mono);
+      color: var(--c-cream-dim);
+      letter-spacing: 0.1em;
+      margin-left: auto;
+    }
+
+    .planet-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 48px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .planet-card {
+      position: relative;
+      padding: 32px 28px;
+      background: rgba(15,30,50,0.55);
+      border: 1px solid rgba(244,234,212,0.12);
+      transition: transform 0.4s, border-color 0.3s, background 0.3s;
+      cursor: none;
+    }
+    .planet-card:hover {
+      transform: translateY(-6px);
+      border-color: var(--c-amber);
+      background: rgba(15,30,50,0.85);
+    }
+
+    .planet-card__orb {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      margin-bottom: 24px;
+      box-shadow: 0 0 40px rgba(232,167,106,0.18);
+      position: relative;
+    }
+    .planet-card__orb--1 {
+      background: radial-gradient(circle at 32% 30%, #f4d49a 0%, #d4854a 50%, #7a4226 100%);
+    }
+    .planet-card__orb--2 {
+      background: radial-gradient(circle at 30% 30%, #4a6b85, #2a3f5a 60%, #1a2838);
+      opacity: 0.5;
+    }
+    .planet-card__orb--3 {
+      background: radial-gradient(circle at 30% 30%, #6a4a6a, #3a2a3a 60%, #1a121a);
+      opacity: 0.5;
+    }
+
+    .planet-card__num {
+      font: 400 10px/1 var(--font-mono);
+      letter-spacing: 0.3em;
+      color: var(--c-amber);
+      margin-bottom: 8px;
+    }
+    .planet-card__title {
+      font: 500 22px/1.3 var(--font-serif);
+      color: var(--c-cream);
+      margin: 0 0 12px;
+    }
+    .planet-card__meta {
+      font: 400 11px/1.5 var(--font-mono);
+      color: var(--c-cream-dim);
+      letter-spacing: 0.08em;
+      margin-bottom: 16px;
+    }
+    .planet-card__desc {
+      font: 400 13px/1.7 var(--font-jp);
+      color: var(--c-cream-dim);
+    }
+    .planet-card--locked .planet-card__title,
+    .planet-card--locked .planet-card__meta,
+    .planet-card--locked .planet-card__desc {
+      color: var(--c-cream-dim);
+      opacity: 0.7;
+    }
+    .planet-card__lock-tag {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 4px 10px;
+      border: 1px dashed var(--c-cream-dim);
+      font: 500 9px/1 var(--font-mono);
+      letter-spacing: 0.25em;
+      color: var(--c-cream-dim);
+    }
+    .planet-card__visit {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 8px 14px;
+      border: 1px solid var(--c-amber);
+      color: var(--c-amber);
+      font: 500 10px/1 var(--font-mono);
+      letter-spacing: 0.25em;
+      transition: background 0.2s, color 0.2s;
+    }
+    .planet-card__visit:hover {
+      background: var(--c-amber);
+      color: var(--c-dark);
+    }
+
+    /* ============ CONTACT ============ */
+    .contact {
+      position: relative;
+      min-height: 80vh;
+      padding: 140px 32px 80px;
+      background: linear-gradient(to bottom, #0d1a2e 0%, #050a14 100%);
+      overflow: hidden;
+    }
+    .contact::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 15% 25%, rgba(244,234,212,0.5), transparent),
+        radial-gradient(2px 2px at 38% 60%, rgba(244,234,212,0.6), transparent),
+        radial-gradient(1px 1px at 72% 30%, rgba(244,234,212,0.5), transparent),
+        radial-gradient(1.5px 1.5px at 88% 70%, rgba(244,234,212,0.6), transparent);
+      pointer-events: none;
+    }
+
+    .signal {
+      max-width: 720px;
+      margin: 0 auto;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+    .signal__icon {
+      width: 60px; height: 60px;
+      margin: 0 auto 32px;
+      border: 1.5px solid var(--c-amber);
+      border-radius: 50%;
+      position: relative;
+    }
+    .signal__icon::before,
+    .signal__icon::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      border: 1.5px solid var(--c-amber);
+      border-radius: 50%;
+      opacity: 0.5;
+      animation: signalPulse 2.5s ease-out infinite;
+    }
+    .signal__icon::before { width: 100%; height: 100%; }
+    .signal__icon::after { width: 100%; height: 100%; animation-delay: 1.25s; }
+    @keyframes signalPulse {
+      0% { width: 100%; height: 100%; opacity: 0.7; }
+      100% { width: 200%; height: 200%; opacity: 0; }
+    }
+    .signal__icon-dot {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px; height: 8px;
+      background: var(--c-amber);
+      border-radius: 50%;
+    }
+
+    .signal__label {
+      font: 500 11px/1 var(--font-mono);
+      letter-spacing: 0.4em;
+      color: var(--c-amber);
+      margin-bottom: 16px;
+    }
+    .signal__title {
+      font: 400 40px/1.2 var(--font-serif);
+      color: var(--c-cream);
+      margin: 0 0 20px;
+    }
+    .signal__lead {
+      font: 400 14px/1.8 var(--font-jp);
+      color: var(--c-cream-dim);
+      margin: 0 auto 48px;
+      max-width: 540px;
+    }
+
+    .signal__channels {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .channel {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      background: rgba(15,30,50,0.55);
+      border: 1px solid rgba(244,234,212,0.12);
+      transition: border-color 0.3s, background 0.3s;
+    }
+    .channel:hover {
+      border-color: var(--c-amber);
+      background: rgba(15,30,50,0.85);
+    }
+    .channel__type {
+      font: 500 10px/1 var(--font-mono);
+      letter-spacing: 0.25em;
+      color: var(--c-amber);
+    }
+    .channel__addr {
+      font: 400 13px/1 var(--font-mono);
+      color: var(--c-cream);
+    }
+
+    .footer-coords {
+      max-width: 1200px;
+      margin: 80px auto 0;
+      padding-top: 24px;
+      border-top: 1px solid rgba(244,234,212,0.1);
+      display: flex;
+      justify-content: space-between;
+      font: 400 10px/1 var(--font-mono);
+      letter-spacing: 0.2em;
+      color: var(--c-cream-dim);
+    }
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width: 720px) {
+      .hud { padding: 16px; }
+      .nav { gap: 16px; }
+      .nav a { font-size: 9px; letter-spacing: 0.2em; }
+      .status { padding: 8px 10px; }
+      .status__bar { width: 100px; }
+      .hero__title { font-size: 36px; }
+      .section-head { flex-direction: column; gap: 8px; }
+      .section-head__title { font-size: 28px; }
+      .section-head__caption { margin-left: 0; }
+      .planet-grid { gap: 32px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .flame, .scroll-cue__line, .signal__icon::before, .signal__icon::after, .stars span {
+        animation: none !important;
+      }
+      html { scroll-behavior: auto; }
+    }
+
+    /* ============ BOOT SCREEN (game-style loading) ============ */
+    body.boot-locked { overflow: hidden; }
+
+    .boot {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: var(--c-dark);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.9s ease, visibility 0.9s ease;
+    }
+    .boot.is-fading {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .boot__brand {
+      position: absolute;
+      top: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      font: 500 9px/1 var(--font-mono);
+      letter-spacing: 0.5em;
+      color: var(--c-amber);
+      opacity: 0.7;
+    }
+    .boot__compass {
+      width: 56px; height: 56px;
+      margin-bottom: 32px;
+      animation: bootSpin 4s linear infinite;
+    }
+    .boot__compass svg { width: 100%; height: 100%; display: block; }
+    @keyframes bootSpin {
+      from { transform: rotate(0); }
+      to { transform: rotate(360deg); }
+    }
+    .boot__inner {
+      width: 540px;
+      max-width: 92vw;
+      padding: 0 32px;
+      text-align: center;
+    }
+    .boot__title {
+      font: 400 36px/1.2 var(--font-serif);
+      color: var(--c-cream);
+      margin: 0 0 16px;
+      letter-spacing: 0.04em;
+    }
+    .boot__sub {
+      font: 400 11px/1 var(--font-mono);
+      letter-spacing: 0.4em;
+      color: var(--c-amber);
+      margin: 0 0 56px;
+    }
+    .boot__lines {
+      font: 400 12px/2 var(--font-mono);
+      color: var(--c-cream);
+      letter-spacing: 0.04em;
+      margin: 0 auto 32px;
+      min-height: 168px;
+      text-align: left;
+      max-width: 360px;
+    }
+    .boot__line {
+      opacity: 0;
+      animation: bootFadeIn 0.18s forwards;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .boot__line .ok { color: var(--c-amber); }
+    .boot__line .label { color: var(--c-cream-dim); }
+    @keyframes bootFadeIn {
+      to { opacity: 1; }
+    }
+    .boot__bar {
+      width: 100%;
+      max-width: 360px;
+      height: 3px;
+      background: rgba(244,234,212,0.12);
+      margin: 0 auto 12px;
+    }
+    .boot__bar-fill {
+      width: 0%;
+      height: 100%;
+      background: var(--c-amber);
+      transition: width 0.35s ease;
+      box-shadow: 0 0 8px rgba(232,167,106,0.6);
+    }
+    .boot__pct {
+      font: 400 10px/1 var(--font-mono);
+      color: var(--c-cream-dim);
+      letter-spacing: 0.25em;
+      margin-bottom: 48px;
+    }
+    .boot__start {
+      display: inline-block;
+      font: 500 11px/1 var(--font-mono);
+      letter-spacing: 0.5em;
+      color: var(--c-amber);
+      cursor: none;
+      padding: 16px 28px;
+      border: 1px solid var(--c-amber);
+      opacity: 0;
+      transition: opacity 0.5s, background 0.2s, color 0.2s;
+    }
+    .boot__start.is-ready {
+      opacity: 1;
+      animation: bootBlink 1.5s ease-in-out infinite;
+    }
+    .boot__start:hover {
+      background: var(--c-amber);
+      color: var(--c-dark);
+      animation: none;
+    }
+    @keyframes bootBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.45; }
+    }
+
+    /* ============ PAGE REVEAL (book metaphor) ============ */
+    .reveal {
+      opacity: 0;
+      transform: translateY(36px);
+      transition: opacity 0.95s cubic-bezier(0.22, 0.61, 0.36, 1),
+                  transform 0.95s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+    .reveal.is-revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal--d1 { transition-delay: 0.08s; }
+    .reveal--d2 { transition-delay: 0.18s; }
+    .reveal--d3 { transition-delay: 0.28s; }
+    .reveal--d4 { transition-delay: 0.38s; }
+
+    /* ============ PAGE CORNER (page number) ============ */
+    .page-corner {
+      position: absolute;
+      bottom: 24px; right: 28px;
+      font: 400 10px/1 var(--font-mono);
+      letter-spacing: 0.3em;
+      color: var(--c-cream-dim);
+      opacity: 0.6;
+      pointer-events: none;
+      z-index: 5;
+    }
+    .hero .page-corner { color: var(--c-cream); opacity: 0.7; }
+
+    /* ============ NEXT PAGE CUE ============ */
+    .next-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      width: max-content;
+      margin: 100px auto 0;
+      padding: 14px 22px;
+      text-align: center;
+      transition: transform 0.35s ease, color 0.3s;
+      position: relative;
+      z-index: 3;
+      cursor: none;
+    }
+    .next-page__line {
+      width: 1px;
+      height: 28px;
+      background: linear-gradient(to bottom, var(--c-amber), transparent);
+    }
+    .next-page__label {
+      font: 500 9px/1 var(--font-mono);
+      letter-spacing: 0.45em;
+      color: var(--c-cream-dim);
+    }
+    .next-page__target {
+      font: 500 12px/1 var(--font-mono);
+      letter-spacing: 0.3em;
+      color: var(--c-amber);
+    }
+    .next-page:hover { transform: translateY(4px); }
+    .next-page:hover .next-page__target { color: var(--c-cream); }
+
+    .hero .next-page { position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%); margin: 0; }
+    .hero .next-page:hover { transform: translateX(-50%) translateY(4px); }
+
+    /* ============ SCROLL SNAP (page-by-page settle) ============ */
+    @media (prefers-reduced-motion: no-preference) and (min-width: 721px) {
+      html {
+        scroll-snap-type: y proximity;
+      }
+      .hero, .mission, .profile, .works, .contact {
+        scroll-snap-align: start;
+        scroll-snap-stop: normal;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .boot__title { font-size: 26px; }
+      .boot__sub { letter-spacing: 0.3em; font-size: 10px; }
+      .boot__lines { font-size: 11px; }
+      .next-page { margin-top: 64px; }
+    }
+  </style>
+</head>
+
+<body class="boot-locked">
+
+  <!-- ============ BOOT SCREEN (game-style loading) ============ -->
+  <div class="boot" id="boot" role="dialog" aria-label="loading screen">
+    <div class="boot__brand">FIELD JOURNAL · v0.1</div>
+
+    <div class="boot__compass" aria-hidden="true">
+      <svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="28" cy="28" r="25" fill="none" stroke="#e8a76a" stroke-width="0.8"/>
+        <circle cx="28" cy="28" r="22" fill="rgba(244,234,212,0.04)" stroke="#c9a876" stroke-width="0.5"/>
+        <text x="28" y="11" text-anchor="middle" fill="#e8a76a" font-family="ui-monospace, monospace" font-size="6" font-weight="500">N</text>
+        <path d="M 28 6 L 30 28 L 28 50 L 26 28 Z" fill="#a04030"/>
+        <path d="M 28 6 L 30 28 L 26 28 Z" fill="#d4654a"/>
+        <circle cx="28" cy="28" r="1.5" fill="#1a0e08"/>
+      </svg>
+    </div>
+
+    <div class="boot__inner">
+      <h1 class="boot__title">Field Journal</h1>
+      <p class="boot__sub">— AN EXPLORER'S PORTFOLIO —</p>
+
+      <div class="boot__lines" id="boot-lines"></div>
+
+      <div class="boot__bar"><div class="boot__bar-fill" id="boot-fill"></div></div>
+      <div class="boot__pct" id="boot-pct">LOADING 0%</div>
+
+      <div class="boot__start" id="boot-start" role="button" tabindex="0">[ PRESS ANY KEY TO BEGIN ]</div>
+    </div>
+  </div>
+
+  <!-- ============ CUSTOM CURSOR ============ -->
+  <div class="cursor" id="cursor" aria-hidden="true">
+    <div class="cursor__compass">
+      <div class="cursor__ring"></div>
+      <div class="cursor__cardinals">
+        <span class="n">N</span>
+        <span class="s">S</span>
+        <span class="e">E</span>
+        <span class="w">W</span>
+      </div>
+      <div class="cursor__needle" id="cursor-needle">
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+          <path d="M 16 2 L 19 16 L 16 30 L 13 16 Z" fill="#a04030"/>
+          <path d="M 16 2 L 19 16 L 13 16 Z" fill="#d4654a"/>
+          <circle cx="16" cy="16" r="1.8" fill="#1a0e08"/>
+        </svg>
+      </div>
+      <div class="cursor__brackets"><span></span></div>
+      <div class="cursor__lock">LOCK</div>
+    </div>
+    <div class="cursor__coord" id="cursor-coord">
+      <div id="coord-lat">N 35°42'18&quot;</div>
+      <div id="coord-lng">E 139°46'02&quot;</div>
+    </div>
+  </div>
+
+  <!-- ============ HUD (FIXED) ============ -->
+  <div class="hud">
+    <div class="status" aria-label="explorer status">
+      <div class="status__label" id="status-label">EXPLORER · LV.01</div>
+      <div class="status__bar"><div class="status__bar-fill" id="status-fill"></div></div>
+      <div class="status__pct" id="status-pct">EXP 0%</div>
+    </div>
+    <nav class="nav" aria-label="primary">
+      <a href="#hero">CAMP</a>
+      <a href="#mission">MISSION</a>
+      <a href="#profile">PROFILE</a>
+      <a href="#works">MAP</a>
+      <a href="#contact">SIGNAL</a>
+    </nav>
+  </div>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" id="hero">
+    <!-- stars -->
+    <div class="stars" id="stars"></div>
+
+    <!-- sun -->
+    <div class="sun" aria-hidden="true"></div>
+
+    <!-- decorative planets in sky -->
+    <div class="planet-deco planet-deco--1" aria-hidden="true"></div>
+    <div class="planet-deco planet-deco--2" aria-hidden="true"></div>
+
+    <!-- mountains -->
+    <div class="mountains" aria-hidden="true">
+      <svg viewBox="0 0 1440 600" preserveAspectRatio="none">
+        <!-- far mountains -->
+        <path d="M 0 360 L 120 280 L 240 320 L 360 240 L 500 300 L 640 250 L 800 310 L 940 270 L 1080 300 L 1220 260 L 1440 280 L 1440 600 L 0 600 Z"
+              fill="#5a6478" opacity="0.7"/>
+        <!-- mid mountains -->
+        <path d="M 0 420 L 140 340 L 300 400 L 460 320 L 620 380 L 760 340 L 900 400 L 1040 360 L 1200 390 L 1340 350 L 1440 380 L 1440 600 L 0 600 Z"
+              fill="#3f4a58" opacity="0.9"/>
+        <!-- near mountains -->
+        <path d="M 0 480 L 100 420 L 240 470 L 380 400 L 520 460 L 660 420 L 820 470 L 960 430 L 1120 470 L 1280 430 L 1440 460 L 1440 600 L 0 600 Z"
+              fill="#2a3340"/>
+      </svg>
+    </div>
+
+    <!-- ground -->
+    <div class="ground" aria-hidden="true"></div>
+
+    <!-- camp items -->
+    <div class="camp" aria-hidden="true">
+      <svg class="tent" viewBox="0 0 90 80" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 5 75 L 45 5 L 85 75 Z" fill="#a04030" stroke="#5a2418" stroke-width="1.5"/>
+        <path d="M 35 75 L 45 28 L 55 75 Z" fill="#1a0e08"/>
+        <line x1="0" y1="76" x2="90" y2="76" stroke="#3a2010" stroke-width="2"/>
+      </svg>
+    </div>
+
+    <div class="campfire" aria-hidden="true">
+      <div class="flame"></div>
+      <div class="campfire__logs"></div>
+    </div>
+
+    <div class="flag" aria-hidden="true">
+      <div class="flag__pole"></div>
+      <div class="flag__cloth"></div>
+    </div>
+
+    <!-- copy -->
+    <div class="hero__copy reveal">
+      <div class="hero__eyebrow">— FIELD JOURNAL · ENTRY 001 —</div>
+      <h1 class="hero__title">Welcome, traveler.</h1>
+      <p class="hero__lead">
+        ここは Kimi のフィールドジャーナル。<br />
+        惑星をひとつずつ訪ねて、これまで歩いた道のりを記録した場所です。<br />
+        次の目的地へ、ゆっくり進んでください。
+      </p>
+    </div>
+
+    <a class="next-page" href="#mission">
+      <span class="next-page__label">TURN TO NEXT PAGE</span>
+      <span class="next-page__line"></span>
+      <span class="next-page__target">// 02 — MISSION</span>
+    </a>
+
+    <div class="page-corner">— page 01 / 05 —</div>
+  </section>
+
+  <!-- ============ MISSION ============ -->
+  <section class="mission" id="mission">
+    <header class="section-head reveal">
+      <span class="section-head__num">// 02</span>
+      <h2 class="section-head__title">なぜ今、オリジナルHPなのか</h2>
+      <span class="section-head__caption">WHY ORIGINAL · 03 ENTRIES</span>
+    </header>
+
+    <p class="mission__lead reveal reveal--d1">
+      テンプレートが氾濫する時代だからこそ、<br />
+      ひとつずつ手で組み立てるHPには、別の役割があると考えています。
+    </p>
+
+    <div class="reasons reveal reveal--d2">
+      <article class="reason">
+        <div class="reason__num">01</div>
+        <h3 class="reason__title">第一印象は、3秒で決まる</h3>
+        <p class="reason__body">
+          色、余白、フォントの選び方──そのひとつひとつが訪問者の印象になる。テンプレが量産する整った無個性さでは、伝わらないものがあります。
+        </p>
+      </article>
+      <article class="reason">
+        <div class="reason__num">02</div>
+        <h3 class="reason__title">「らしさ」は装飾ではなく構造</h3>
+        <p class="reason__body">
+          あなたの仕事の温度や、お客さんへの丁寧さの密度。それはバナーや写真ではなく、ページの構造そのものに宿ります。だから一緒に「らしさ」を探すところから始めます。
+        </p>
+      </article>
+      <article class="reason">
+        <div class="reason__num">03</div>
+        <h3 class="reason__title">滞在したくなる体験を</h3>
+        <p class="reason__body">
+          読んで閉じるサイトと、また訪れたくなるサイトの差は「体験」にあります。世界観を持ったHPは、コンテンツが同じでも記憶に残る時間を長くします。
+        </p>
+      </article>
+    </div>
+
+    <p class="mission__close reveal reveal--d3">
+      だから、まずあなたの話を聞かせてください。<br />
+      そこから、世界観を一緒に作っていきます。
+    </p>
+
+    <a class="next-page" href="#profile">
+      <span class="next-page__label">TURN TO NEXT PAGE</span>
+      <span class="next-page__line"></span>
+      <span class="next-page__target">// 03 — PROFILE</span>
+    </a>
+    <div class="page-corner">— page 02 / 05 —</div>
+  </section>
+
+  <!-- ============ PROFILE ============ -->
+  <section class="profile" id="profile">
+    <header class="section-head reveal">
+      <span class="section-head__num">// 03</span>
+      <h2 class="section-head__title">Explorer profile</h2>
+      <span class="section-head__caption">DOSSIER · BASE CAMP</span>
+    </header>
+
+    <div class="dossier reveal reveal--d1">
+      <div class="dossier__photo" aria-hidden="true">
+        <svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">
+          <rect width="200" height="240" fill="rgba(244,234,212,0.04)" />
+          <circle cx="100" cy="92" r="40" fill="#3a2010" opacity="0.55" />
+          <path d="M 36 220 Q 100 132 164 220 L 164 240 L 36 240 Z" fill="#3a2010" opacity="0.55" />
+        </svg>
+        <div class="dossier__photo-frame"></div>
+      </div>
+
+      <table class="dossier-table">
+        <tbody>
+          <tr><td>NAME</td><td>Kimi</td></tr>
+          <tr><td>CLASS</td><td>Web Designer / Frontend (in training)</td></tr>
+          <tr><td>BASE</td><td>Tokyo, Japan</td></tr>
+          <tr><td>JOURNEY START</td><td>2024</td></tr>
+          <tr><td>EQUIPMENT</td><td>HTML / CSS / JavaScript / Figma</td></tr>
+          <tr><td>CURRENT QUEST</td><td>オリジナルHP制作</td></tr>
+          <tr><td>INTERESTS</td><td>能楽・狂言、自然、静かな朝</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="bio reveal reveal--d2">
+      <p class="bio__lead">
+        もともとは別の分野で、人と向き合う仕事をしていました。
+      </p>
+      <p class="bio__body">
+        Webの世界に入ったのは2024年。コードはまだ学びの途中ですが、だからこそ依頼者と一緒に手を動かしながら、納得のいく形を一緒に探していくスタイルを大切にしています。技術的な完成度だけでなく、「ここに来るとほっとする」体験設計を目指して。
+      </p>
+    </div>
+
+    <a class="next-page" href="#works">
+      <span class="next-page__label">TURN TO NEXT PAGE</span>
+      <span class="next-page__line"></span>
+      <span class="next-page__target">// 04 — MAP</span>
+    </a>
+    <div class="page-corner">— page 03 / 05 —</div>
+  </section>
+
+  <!-- ============ WORKS ============ -->
+  <section class="works" id="works">
+    <header class="section-head reveal">
+      <span class="section-head__num">// 04</span>
+      <h2 class="section-head__title">Discovered planets</h2>
+      <span class="section-head__caption">3 charted · 1 active</span>
+    </header>
+
+    <div class="planet-grid reveal reveal--d1">
+      <article class="planet-card">
+        <div class="planet-card__orb planet-card__orb--1"></div>
+        <div class="planet-card__num">PLANET 01</div>
+        <h3 class="planet-card__title">カウンセリングオフィス HP</h3>
+        <div class="planet-card__meta">HTML / CSS · 2024</div>
+        <p class="planet-card__desc">
+          落ち着いたトーンと読みやすさを軸にした、個人カウンセラー向けのランディングページ。
+        </p>
+        <a href="#" class="planet-card__visit">VISIT &rarr;</a>
+      </article>
+
+      <article class="planet-card planet-card--locked">
+        <div class="planet-card__orb planet-card__orb--2"></div>
+        <div class="planet-card__num">PLANET 02</div>
+        <h3 class="planet-card__title">Uncharted</h3>
+        <div class="planet-card__meta">— · COMING SOON</div>
+        <p class="planet-card__desc">
+          現在探査中。次の制作実績がここに着陸予定です。
+        </p>
+        <span class="planet-card__lock-tag">EXPLORATION IN PROGRESS</span>
+      </article>
+
+      <article class="planet-card planet-card--locked">
+        <div class="planet-card__orb planet-card__orb--3"></div>
+        <div class="planet-card__num">PLANET 03</div>
+        <h3 class="planet-card__title">Uncharted</h3>
+        <div class="planet-card__meta">— · COMING SOON</div>
+        <p class="planet-card__desc">
+          まだ地図にない惑星。新しい挑戦を準備中です。
+        </p>
+        <span class="planet-card__lock-tag">EXPLORATION IN PROGRESS</span>
+      </article>
+    </div>
+
+    <a class="next-page" href="#contact">
+      <span class="next-page__label">TURN TO NEXT PAGE</span>
+      <span class="next-page__line"></span>
+      <span class="next-page__target">// 05 — SIGNAL</span>
+    </a>
+    <div class="page-corner">— page 04 / 05 —</div>
+  </section>
+
+  <!-- ============ CONTACT ============ -->
+  <section class="contact" id="contact">
+    <div class="signal reveal">
+      <div class="signal__icon" aria-hidden="true">
+        <span class="signal__icon-dot"></span>
+      </div>
+      <div class="signal__label">— SIGNAL · 05 —</div>
+      <h2 class="signal__title">Send a transmission</h2>
+      <p class="signal__lead">
+        新しい依頼や、ちょっとした感想でも大丈夫です。<br />
+        以下のチャンネルから信号を送ってください。
+      </p>
+
+      <div class="signal__channels">
+        <a class="channel" href="mailto:awawa.4863@gmail.com">
+          <span class="channel__type">EMAIL</span>
+          <span class="channel__addr">awawa.4863@gmail.com</span>
+        </a>
+        <a class="channel" href="#">
+          <span class="channel__type">GITHUB</span>
+          <span class="channel__addr">github.com/—</span>
+        </a>
+        <a class="channel" href="#">
+          <span class="channel__type">SOCIAL</span>
+          <span class="channel__addr">@—</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer-coords reveal reveal--d1">
+      <span>BASE CAMP · N 35°42'18&quot; / E 139°46'02&quot;</span>
+      <span>© Kimi · FIELD JOURNAL 2026</span>
+    </div>
+
+    <div class="page-corner">— page 05 / 05 — END —</div>
+  </section>
+
+  <script>
+    /* ============ STARS ============ */
+    (function() {
+      const stars = document.getElementById('stars');
+      const count = 60;
+      let html = '';
+      for (let i = 0; i < count; i++) {
+        const x = Math.random() * 100;
+        const y = Math.random() * 60; // upper portion only (sky)
+        const delay = Math.random() * 4;
+        const size = Math.random() < 0.3 ? 2.5 : (Math.random() < 0.6 ? 1.8 : 1.2);
+        html += `<span style="left:${x}%; top:${y}%; width:${size}px; height:${size}px; animation-delay:${delay}s"></span>`;
+      }
+      stars.innerHTML = html;
+    })();
+
+    /* ============ CUSTOM CURSOR ============ */
+    (function() {
+      const cursor = document.getElementById('cursor');
+      const needle = document.getElementById('cursor-needle');
+      const coordLat = document.getElementById('coord-lat');
+      const coordLng = document.getElementById('coord-lng');
+
+      let mx = window.innerWidth / 2;
+      let my = window.innerHeight / 2;
+      let cx = mx, cy = my;
+      let prevMx = mx, prevMy = my;
+      let lastAngle = 0;
+
+      window.addEventListener('mousemove', (e) => {
+        mx = e.clientX;
+        my = e.clientY;
+      }, { passive: true });
+
+      window.addEventListener('mousedown', () => cursor.classList.add('is-click'));
+      window.addEventListener('mouseup', () => cursor.classList.remove('is-click'));
+
+      // hover targets: anything with a href, button, or .planet-card
+      const hoverSelectors = 'a, button, .planet-card, .channel, .boot__start, .next-page, .reason';
+      function bindHover() {
+        document.querySelectorAll(hoverSelectors).forEach(el => {
+          el.addEventListener('mouseenter', () => cursor.classList.add('is-hover'));
+          el.addEventListener('mouseleave', () => cursor.classList.remove('is-hover'));
+        });
+      }
+      bindHover();
+
+      // approximate "coordinates" derived from cursor position
+      function fmtCoord(prefix, base, val, range) {
+        const v = base + (val / range) * 0.05;
+        const deg = Math.floor(v);
+        const minTotal = (v - deg) * 60;
+        const min = Math.floor(minTotal);
+        const sec = Math.floor((minTotal - min) * 60);
+        return `${prefix} ${deg}°${String(min).padStart(2,'0')}'${String(sec).padStart(2,'0')}"`;
+      }
+
+      function loop() {
+        // smooth follow
+        cx += (mx - cx) * 0.18;
+        cy += (my - cy) * 0.18;
+        cursor.style.transform = `translate(${cx - 28}px, ${cy - 28}px)`;
+
+        // needle direction: face current motion vector
+        const dx = mx - prevMx;
+        const dy = my - prevMy;
+        const speed = Math.hypot(dx, dy);
+        if (speed > 0.5) {
+          // angle: SVG path is drawn pointing UP (tip at top), so 0deg = north
+          // we want needle's "north tip" to point IN direction of motion
+          const angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+          lastAngle = angle;
+          needle.style.transform = `rotate(${angle}deg)`;
+        } else {
+          // ease back toward 0 (north) when idle
+          lastAngle += (0 - lastAngle) * 0.04;
+          needle.style.transform = `rotate(${lastAngle}deg)`;
+        }
+        prevMx = mx;
+        prevMy = my;
+
+        // update coord readout (Tokyo-ish base)
+        coordLat.textContent = fmtCoord('N', 35, my, window.innerHeight);
+        coordLng.textContent = fmtCoord('E', 139, mx, window.innerWidth);
+
+        requestAnimationFrame(loop);
+      }
+      loop();
+    })();
+
+    /* ============ PARALLAX (subtle) ============ */
+    (function() {
+      const sun = document.querySelector('.sun');
+      const planet1 = document.querySelector('.planet-deco--1');
+      const planet2 = document.querySelector('.planet-deco--2');
+      const mountains = document.querySelector('.mountains svg');
+      const camp = document.querySelector('.camp');
+      const fire = document.querySelector('.campfire');
+      const flag = document.querySelector('.flag');
+
+      let scrollY = 0;
+      let ticking = false;
+
+      function update() {
+        const y = scrollY;
+        if (sun) sun.style.transform = `translateY(${y * 0.3}px)`;
+        if (planet1) planet1.style.transform = `translateY(${y * 0.15}px) translateX(${y * 0.05}px)`;
+        if (planet2) planet2.style.transform = `translateY(${y * 0.18}px) translateX(${y * -0.04}px)`;
+        if (mountains) mountains.style.transform = `translateY(${y * 0.08}px)`;
+        if (camp) camp.style.transform = `translateY(${y * 0.02}px)`;
+        if (fire) fire.style.transform = `translateY(${y * 0.02}px)`;
+        if (flag) flag.style.transform = `translateY(${y * 0.02}px)`;
+        ticking = false;
+      }
+
+      window.addEventListener('scroll', () => {
+        scrollY = window.scrollY;
+        if (!ticking) {
+          requestAnimationFrame(update);
+          ticking = true;
+        }
+      }, { passive: true });
+    })();
+
+    /* ============ EXP GAUGE (scroll-driven) ============ */
+    (function() {
+      const fill = document.getElementById('status-fill');
+      const pct = document.getElementById('status-pct');
+      const label = document.getElementById('status-label');
+      if (!fill || !pct || !label) return;
+
+      function update() {
+        const scrollTop = window.scrollY || 0;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = docHeight > 0 ? Math.min(100, (scrollTop / docHeight) * 100) : 0;
+        fill.style.width = progress.toFixed(1) + '%';
+        pct.textContent = 'EXP ' + Math.floor(progress) + '%';
+
+        // Level up at 20/40/60/80% (5 levels matching 5 sections)
+        let lv = 1;
+        if (progress >= 20) lv = 2;
+        if (progress >= 40) lv = 3;
+        if (progress >= 60) lv = 4;
+        if (progress >= 80) lv = 5;
+        label.textContent = 'EXPLORER · LV.0' + lv;
+      }
+
+      let ticking = false;
+      window.addEventListener('scroll', () => {
+        if (!ticking) {
+          requestAnimationFrame(() => { update(); ticking = false; });
+          ticking = true;
+        }
+      }, { passive: true });
+      window.addEventListener('resize', update, { passive: true });
+      update();
+    })();
+
+    /* ============ BOOT SEQUENCE ============ */
+    (function() {
+      const boot = document.getElementById('boot');
+      const linesEl = document.getElementById('boot-lines');
+      const fillEl = document.getElementById('boot-fill');
+      const pctEl = document.getElementById('boot-pct');
+      const startEl = document.getElementById('boot-start');
+      if (!boot || !linesEl || !fillEl || !pctEl || !startEl) return;
+
+      const bootLines = [
+        { label: '> INITIALIZING SYSTEM', tail: 'OK' },
+        { label: '> CALIBRATING COMPASS', tail: 'OK' },
+        { label: '> SYNCING COORDINATES', tail: 'OK' },
+        { label: '> LOADING TERRAIN', tail: 'OK' },
+        { label: '> EXPLORER STATUS', tail: 'READY' }
+      ];
+
+      const dots = (target, totalCols = 32) => {
+        const remain = totalCols - target.length;
+        return remain > 0 ? '.'.repeat(remain) : ' ';
+      };
+
+      bootLines.forEach((entry, i) => {
+        setTimeout(() => {
+          const div = document.createElement('div');
+          div.className = 'boot__line';
+          div.innerHTML =
+            '<span class="label">' + entry.label + '</span>' +
+            dots(entry.label) +
+            '<span class="ok">' + entry.tail + '</span>';
+          linesEl.appendChild(div);
+
+          const pct = Math.round(((i + 1) / bootLines.length) * 100);
+          fillEl.style.width = pct + '%';
+          pctEl.textContent = 'LOADING ' + pct + '%';
+        }, 280 + i * 360);
+      });
+
+      const readyDelay = 280 + bootLines.length * 360 + 350;
+      setTimeout(() => {
+        startEl.classList.add('is-ready');
+      }, readyDelay);
+
+      let dismissed = false;
+      function dismissBoot() {
+        if (dismissed) return;
+        if (!startEl.classList.contains('is-ready')) return;
+        dismissed = true;
+        boot.classList.add('is-fading');
+        document.body.classList.remove('boot-locked');
+        setTimeout(() => { boot.style.display = 'none'; }, 900);
+      }
+
+      startEl.addEventListener('click', dismissBoot);
+      startEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); dismissBoot(); }
+      });
+      window.addEventListener('keydown', dismissBoot);
+      window.addEventListener('click', (e) => {
+        if (e.target.closest('#boot')) return; // click on boot itself handled
+        dismissBoot();
+      });
+      // also allow click anywhere inside boot to dismiss after ready
+      boot.addEventListener('click', dismissBoot);
+    })();
+
+    /* ============ PAGE REVEAL (IntersectionObserver) ============ */
+    (function() {
+      const items = document.querySelectorAll('.reveal');
+      if (!items.length) return;
+      if (!('IntersectionObserver' in window)) {
+        items.forEach(el => el.classList.add('is-revealed'));
+        return;
+      }
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-revealed');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+
+      items.forEach(item => observer.observe(item));
+    })();
+  </script>
+</body>
+</html>
