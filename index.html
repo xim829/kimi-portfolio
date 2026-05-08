@@ -1190,38 +1190,44 @@
     .page-tear { animation: tearBreathe 7s ease-in-out infinite; }
 
     /* Intensified state: applied while the section is being scrolled away.
-       The tear "lifts" slightly with a stronger curl shadow, simulating
-       the page being torn in real time. Driven by IntersectionObserver. */
-    .page-tear.is-tearing {
-      animation: tearLift 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+       The tear "lifts" with a stronger curl shadow, simulating the page
+       being torn in real time. JS toggles this in the 0.05-0.95 progress
+       window so it stays on through most of the transition. */
+    .page-tear.is-tearing .page-tear__strip {
+      animation: tearLift 1.4s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
     }
     @keyframes tearLift {
-      0%   { transform: translateY(0)   rotateX(0deg)  scaleY(1); }
-      40%  { transform: translateY(-6px) rotateX(8deg)  scaleY(1.06); }
-      100% { transform: translateY(-3px) rotateX(4deg)  scaleY(1.03); }
+      0%   { translate: 0 0;      rotate: x 0deg; }
+      35%  { translate: 0 -6px;   rotate: x 4deg; }
+      70%  { translate: 0 -3px;   rotate: x 2deg; }
+      100% { translate: 0 0;      rotate: x 0deg; }
     }
 
     /* Scroll-progress driven shift: var(--tear-progress) is set per-section
        by JS as the section approaches viewport exit. Larger value = the
-       tear strip lifts more, the curl shadow intensifies. */
+       tear strip lifts more, the curl shadow intensifies. Values are large
+       enough to be perceptible mid-scroll. */
     .page-tear {
       --tear-progress: 0;
       transform-origin: center top;
     }
     @media (prefers-reduced-motion: no-preference) {
       .page-tear__strip {
-        transform: translateY(calc(var(--tear-progress) * -10px))
-                   rotateX(calc(var(--tear-progress) * 6deg));
+        transform: translateY(calc(var(--tear-progress) * -42px))
+                   rotateX(calc(var(--tear-progress) * 26deg))
+                   scaleY(calc(1 + var(--tear-progress) * 0.08));
         transform-origin: center top;
-        transition: transform 0.18s cubic-bezier(0.22, 0.61, 0.36, 1);
+        filter: drop-shadow(0 calc(8px + var(--tear-progress) * 28px)
+                              calc(14px + var(--tear-progress) * 22px)
+                              rgba(0, 0, 0, calc(0.55 + var(--tear-progress) * 0.3)))
+                drop-shadow(0 3px 5px rgba(0, 0, 0, 0.4));
+        transition: transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1),
+                    filter    0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
       }
-      .page-tear__strip {
-        filter: drop-shadow(0 calc(12px + var(--tear-progress) * 14px)
-                              calc(18px + var(--tear-progress) * 10px)
-                              rgba(0, 0, 0, calc(0.45 + var(--tear-progress) * 0.2)))
-                drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35));
-        transition: filter 0.18s cubic-bezier(0.22, 0.61, 0.36, 1),
-                    transform 0.18s cubic-bezier(0.22, 0.61, 0.36, 1);
+      /* The whole tear assembly nudges up slightly too, so the boundary
+         doesn't feel glued to a fixed strip line. */
+      .page-tear {
+        transform: translateY(calc(var(--tear-progress) * -8px));
       }
     }
 
@@ -1998,10 +2004,11 @@
 
           el.style.setProperty('--tear-progress', eased.toFixed(3));
 
-          // Pulse the "is-tearing" class only when progress crosses 0.15 → 0.6 (entering)
-          if (eased > 0.15 && eased < 0.85 && !el.classList.contains('is-tearing')) {
+          // is-tearing class stays on through most of the transition (0.05-0.95)
+          // so the lift keyframe animation has time to play.
+          if (eased > 0.05 && eased < 0.95 && !el.classList.contains('is-tearing')) {
             el.classList.add('is-tearing');
-          } else if ((eased <= 0.15 || eased >= 0.85) && el.classList.contains('is-tearing')) {
+          } else if ((eased <= 0.05 || eased >= 0.95) && el.classList.contains('is-tearing')) {
             el.classList.remove('is-tearing');
           }
         });
