@@ -1125,8 +1125,8 @@
       position: absolute;
       left: -2%;
       right: -2%;
-      bottom: -56px;            /* extends down into next section */
-      height: 120px;
+      bottom: -22px;            /* small overhang into next section */
+      height: 80px;
       pointer-events: none;
       z-index: 6;
       will-change: transform;
@@ -1136,8 +1136,8 @@
     .page-tear__strip {
       position: absolute;
       inset: 0;
-      filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.45))
-              drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35));
+      filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.55))
+              drop-shadow(0 3px 5px rgba(0, 0, 0, 0.4));
     }
     .page-tear__strip svg {
       position: absolute;
@@ -1233,7 +1233,7 @@
 
     /* Mobile: smaller tear footprint */
     @media (max-width: 720px) {
-      .page-tear { height: 80px; bottom: -36px; }
+      .page-tear { height: 56px; bottom: -14px; }
     }
   </style>
 </head>
@@ -1245,18 +1245,20 @@
        width="0" height="0"
        style="position:absolute; pointer-events:none;">
     <defs>
-      <!-- Organic tear edge: turbulence + displacement gives ragged, fibrous line -->
+      <!-- Organic tear edge: turbulence + displacement gives ragged, fibrous line.
+           scale is in user units of the consuming SVG, so it must match the
+           viewBox the path is drawn in (1500x120 here, hence ~90 px). -->
       <filter id="paper-tear" x="-10%" y="-50%" width="120%" height="200%">
-        <feTurbulence type="fractalNoise" baseFrequency="0.012 0.06"
+        <feTurbulence type="fractalNoise" baseFrequency="0.008 0.05"
                       numOctaves="3" seed="7" result="noise"/>
-        <feDisplacementMap in="SourceGraphic" in2="noise" scale="34"
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="90"
                            xChannelSelector="R" yChannelSelector="G"/>
       </filter>
       <!-- Secondary tear (smaller wobble, used on the section boundary fibers) -->
       <filter id="paper-tear-fine" x="-10%" y="-50%" width="120%" height="200%">
         <feTurbulence type="fractalNoise" baseFrequency="0.04 0.18"
                       numOctaves="2" seed="13" result="noise2"/>
-        <feDisplacementMap in="SourceGraphic" in2="noise2" scale="10"
+        <feDisplacementMap in="SourceGraphic" in2="noise2" scale="24"
                            xChannelSelector="R" yChannelSelector="G"/>
       </filter>
       <!-- Subtle paper grain for the torn-piece backside -->
@@ -1428,20 +1430,20 @@
     <!-- Organic torn paper boundary (to next page) -->
     <div class="page-tear" aria-hidden="true" data-tear="01">
       <div class="page-tear__strip">
-        <svg viewBox="0 0 100 6" preserveAspectRatio="none">
-          <path d="M -2 1.2 L 102 1.2 L 102 7 L -2 7 Z"
+        <svg viewBox="0 0 1500 120" preserveAspectRatio="none">
+          <path d="M -50 18 L 1550 18 L 1550 140 L -50 140 Z"
                 fill="url(#paper-cream)" filter="url(#paper-tear)"/>
         </svg>
       </div>
       <div class="page-tear__char">
-        <svg viewBox="0 0 100 2" preserveAspectRatio="none">
-          <path d="M -2 0.4 L 102 0.4 L 102 1.6 L -2 1.6 Z"
+        <svg viewBox="0 0 1500 40" preserveAspectRatio="none">
+          <path d="M -50 4 L 1550 4 L 1550 22 L -50 22 Z"
                 fill="url(#paper-char)" filter="url(#paper-tear-fine)"/>
         </svg>
       </div>
       <div class="page-tear__fibers">
-        <svg viewBox="0 0 100 3" preserveAspectRatio="none">
-          <path d="M -2 1.6 L 102 1.6 L 102 2.4 L -2 2.4 Z"
+        <svg viewBox="0 0 1500 30" preserveAspectRatio="none">
+          <path d="M -50 12 L 1550 12 L 1550 18 L -50 18 Z"
                 fill="url(#paper-cream)" filter="url(#paper-tear-fine)" opacity="0.7"/>
         </svg>
       </div>
@@ -1500,20 +1502,20 @@
     <!-- Organic torn paper boundary (to next page) -->
     <div class="page-tear" aria-hidden="true" data-tear="02">
       <div class="page-tear__strip">
-        <svg viewBox="0 0 100 6" preserveAspectRatio="none">
-          <path d="M -2 1.2 L 102 1.2 L 102 7 L -2 7 Z"
+        <svg viewBox="0 0 1500 120" preserveAspectRatio="none">
+          <path d="M -50 18 L 1550 18 L 1550 140 L -50 140 Z"
                 fill="url(#paper-cream)" filter="url(#paper-tear)"/>
         </svg>
       </div>
       <div class="page-tear__char">
-        <svg viewBox="0 0 100 2" preserveAspectRatio="none">
-          <path d="M -2 0.4 L 102 0.4 L 102 1.6 L -2 1.6 Z"
+        <svg viewBox="0 0 1500 40" preserveAspectRatio="none">
+          <path d="M -50 4 L 1550 4 L 1550 22 L -50 22 Z"
                 fill="url(#paper-char)" filter="url(#paper-tear-fine)"/>
         </svg>
       </div>
       <div class="page-tear__fibers">
-        <svg viewBox="0 0 100 3" preserveAspectRatio="none">
-          <path d="M -2 1.6 L 102 1.6 L 102 2.4 L -2 2.4 Z"
+        <svg viewBox="0 0 1500 30" preserveAspectRatio="none">
+          <path d="M -50 12 L 1550 12 L 1550 18 L -50 18 Z"
                 fill="url(#paper-cream)" filter="url(#paper-tear-fine)" opacity="0.7"/>
         </svg>
       </div>
@@ -1570,20 +1572,20 @@
     <!-- Organic torn paper boundary (to next page) -->
     <div class="page-tear" aria-hidden="true" data-tear="03">
       <div class="page-tear__strip">
-        <svg viewBox="0 0 100 6" preserveAspectRatio="none">
-          <path d="M -2 1.2 L 102 1.2 L 102 7 L -2 7 Z"
+        <svg viewBox="0 0 1500 120" preserveAspectRatio="none">
+          <path d="M -50 18 L 1550 18 L 1550 140 L -50 140 Z"
                 fill="url(#paper-cream)" filter="url(#paper-tear)"/>
         </svg>
       </div>
       <div class="page-tear__char">
-        <svg viewBox="0 0 100 2" preserveAspectRatio="none">
-          <path d="M -2 0.4 L 102 0.4 L 102 1.6 L -2 1.6 Z"
+        <svg viewBox="0 0 1500 40" preserveAspectRatio="none">
+          <path d="M -50 4 L 1550 4 L 1550 22 L -50 22 Z"
                 fill="url(#paper-char)" filter="url(#paper-tear-fine)"/>
         </svg>
       </div>
       <div class="page-tear__fibers">
-        <svg viewBox="0 0 100 3" preserveAspectRatio="none">
-          <path d="M -2 1.6 L 102 1.6 L 102 2.4 L -2 2.4 Z"
+        <svg viewBox="0 0 1500 30" preserveAspectRatio="none">
+          <path d="M -50 12 L 1550 12 L 1550 18 L -50 18 Z"
                 fill="url(#paper-cream)" filter="url(#paper-tear-fine)" opacity="0.7"/>
         </svg>
       </div>
@@ -1643,20 +1645,20 @@
     <!-- Organic torn paper boundary (to next page) -->
     <div class="page-tear" aria-hidden="true" data-tear="04">
       <div class="page-tear__strip">
-        <svg viewBox="0 0 100 6" preserveAspectRatio="none">
-          <path d="M -2 1.2 L 102 1.2 L 102 7 L -2 7 Z"
+        <svg viewBox="0 0 1500 120" preserveAspectRatio="none">
+          <path d="M -50 18 L 1550 18 L 1550 140 L -50 140 Z"
                 fill="url(#paper-cream)" filter="url(#paper-tear)"/>
         </svg>
       </div>
       <div class="page-tear__char">
-        <svg viewBox="0 0 100 2" preserveAspectRatio="none">
-          <path d="M -2 0.4 L 102 0.4 L 102 1.6 L -2 1.6 Z"
+        <svg viewBox="0 0 1500 40" preserveAspectRatio="none">
+          <path d="M -50 4 L 1550 4 L 1550 22 L -50 22 Z"
                 fill="url(#paper-char)" filter="url(#paper-tear-fine)"/>
         </svg>
       </div>
       <div class="page-tear__fibers">
-        <svg viewBox="0 0 100 3" preserveAspectRatio="none">
-          <path d="M -2 1.6 L 102 1.6 L 102 2.4 L -2 2.4 Z"
+        <svg viewBox="0 0 1500 30" preserveAspectRatio="none">
+          <path d="M -50 12 L 1550 12 L 1550 18 L -50 18 Z"
                 fill="url(#paper-cream)" filter="url(#paper-tear-fine)" opacity="0.7"/>
         </svg>
       </div>
