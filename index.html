@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FIELD JOURNAL ‚Äî Kimi</title>
+  <title>FIELD JOURNAL — Kimi</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -203,7 +203,7 @@
       transition: color 0.2s;
     }
     .nav a::before {
-      content: '‚Äî ';
+      content: '— ';
       opacity: 0;
       transition: opacity 0.25s;
     }
@@ -1117,7 +1117,7 @@
     /* ============ PAGE TEAR (organic torn paper boundary) ============ */
     /* The tear sits at the bottom of each section (except contact),
        overlapping into the next section. It represents the bottom of
-       the current page being ripped ‚Äî showing aged paper underside,
+       the current page being ripped — showing aged paper underside,
        a jagged fibrous edge, and a soft cast shadow. */
     section { position: relative; }
 
@@ -1132,7 +1132,7 @@
       will-change: transform;
     }
 
-    /* The actual torn paper strip ‚Äî cream backside, ragged top edge */
+    /* The actual torn paper strip — cream backside, ragged top edge */
     .page-tear__strip {
       position: absolute;
       inset: 0;
@@ -1182,7 +1182,7 @@
       display: block; overflow: visible;
     }
 
-    /* Subtle organic wobble ‚Äî adds living-paper feel even at rest */
+    /* Subtle organic wobble — adds living-paper feel even at rest */
     @keyframes tearBreathe {
       0%, 100% { transform: translateY(0) scaleY(1); }
       50%      { transform: translateY(-1px) scaleY(1.015); }
@@ -1289,7 +1289,7 @@
 
   <!-- ============ BOOT SCREEN (game-style loading) ============ -->
   <div class="boot" id="boot" role="dialog" aria-label="loading screen">
-    <div class="boot__brand">FIELD JOURNAL ¬∑ v0.1</div>
+    <div class="boot__brand">FIELD JOURNAL · v0.1</div>
 
     <div class="boot__compass" aria-hidden="true">
       <svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
@@ -1304,7 +1304,7 @@
 
     <div class="boot__inner">
       <h1 class="boot__title">Field Journal</h1>
-      <p class="boot__sub">‚Äî AN EXPLORER'S PORTFOLIO ‚Äî</p>
+      <p class="boot__sub">— AN EXPLORER'S PORTFOLIO —</p>
 
       <div class="boot__lines" id="boot-lines"></div>
 
@@ -1336,15 +1336,15 @@
       <div class="cursor__lock">LOCK</div>
     </div>
     <div class="cursor__coord" id="cursor-coord">
-      <div id="coord-lat">N 35¬∞42'18&quot;</div>
-      <div id="coord-lng">E 139¬∞46'02&quot;</div>
+      <div id="coord-lat">N 35°42'18&quot;</div>
+      <div id="coord-lng">E 139°46'02&quot;</div>
     </div>
   </div>
 
   <!-- ============ HUD (FIXED) ============ -->
   <div class="hud">
     <div class="status" aria-label="explorer status">
-      <div class="status__label" id="status-label">EXPLORER ¬∑ LV.01</div>
+      <div class="status__label" id="status-label">EXPLORER · LV.01</div>
       <div class="status__bar"><div class="status__bar-fill" id="status-fill"></div></div>
       <div class="status__pct" id="status-pct">EXP 0%</div>
     </div>
@@ -1408,22 +1408,22 @@
 
     <!-- copy -->
     <div class="hero__copy reveal">
-      <div class="hero__eyebrow">‚Äî FIELD JOURNAL ¬∑ ENTRY 001 ‚Äî</div>
+      <div class="hero__eyebrow">— FIELD JOURNAL · ENTRY 001 —</div>
       <h1 class="hero__title">Welcome, traveler.</h1>
       <p class="hero__lead">
-        „Åì„Åì„ÅØ Kimi „ÅÆ„Éï„Ç£„Éº„É´„Éâ„Ç∏„É£„Éº„Éä„É´„ÄÇ<br />
-        ÊÉëÊòü„Çí„Å≤„Å®„Å§„Åö„Å§Ë®™„Å≠„Å¶„ÄÅ„Åì„Çå„Åæ„ÅßÊ≠©„ÅÑ„ÅüÈÅì„ÅÆ„Çä„ÇíË®òÈå≤„Åó„ÅüÂ†¥ÊâÄ„Åß„Åô„ÄÇ<br />
-        Ê¨°„ÅÆÁõÆÁöÑÂú∞„Å∏„ÄÅ„ÇÜ„Å£„Åè„ÇäÈÄ≤„Çì„Åß„Åè„Å†„Åï„ÅÑ„ÄÇ
+        ここは Kimi のフィールドジャーナル。<br />
+        惑星をひとつずつ訪ねて、これまで歩いた道のりを記録した場所です。<br />
+        次の目的地へ、ゆっくり進んでください。
       </p>
     </div>
 
     <a class="next-page" href="#mission">
       <span class="next-page__label">TURN TO NEXT PAGE</span>
       <span class="next-page__line"></span>
-      <span class="next-page__target">// 02 ‚Äî MISSION</span>
+      <span class="next-page__target">// 02 — MISSION</span>
     </a>
 
-    <div class="page-corner">‚Äî page 01 / 05 ‚Äî</div>
+    <div class="page-corner">— page 01 / 05 —</div>
 
     <!-- Organic torn paper boundary (to next page) -->
     <div class="page-tear" aria-hidden="true" data-tear="01">
@@ -1452,50 +1452,50 @@
   <section class="mission" id="mission">
     <header class="section-head reveal">
       <span class="section-head__num">// 02</span>
-      <h2 class="section-head__title">„Å™„Åú‰ªä„ÄÅ„Ç™„É™„Ç∏„Éä„É´HP„Å™„ÅÆ„Åã</h2>
-      <span class="section-head__caption">WHY ORIGINAL ¬∑ 03 ENTRIES</span>
+      <h2 class="section-head__title">なぜ今、オリジナルHPなのか</h2>
+      <span class="section-head__caption">WHY ORIGINAL · 03 ENTRIES</span>
     </header>
 
     <p class="mission__lead reveal reveal--d1">
-      „ÉÜ„É≥„Éó„É¨„Éº„Éà„ÅåÊ∞æÊø´„Åô„ÇãÊôÇ‰ª£„Å†„Åã„Çâ„Åì„Åù„ÄÅ<br />
-      „Å≤„Å®„Å§„Åö„Å§Êâã„ÅßÁµÑ„ÅøÁ´ã„Å¶„ÇãHP„Å´„ÅØ„ÄÅÂà•„ÅÆÂΩπÂâ≤„Åå„ÅÇ„Çã„Å®ËÄÉ„Åà„Å¶„ÅÑ„Åæ„Åô„ÄÇ
+      テンプレートが氾濫する時代だからこそ、<br />
+      ひとつずつ手で組み立てるHPには、別の役割があると考えています。
     </p>
 
     <div class="reasons reveal reveal--d2">
       <article class="reason">
         <div class="reason__num">01</div>
-        <h3 class="reason__title">Á¨¨‰∏ÄÂç∞Ë±°„ÅØ„ÄÅ3Áßí„ÅßÊ±∫„Åæ„Çã</h3>
+        <h3 class="reason__title">第一印象は、3秒で決まる</h3>
         <p class="reason__body">
-          Ëâ≤„ÄÅ‰ΩôÁôΩ„ÄÅ„Éï„Ç©„É≥„Éà„ÅÆÈÅ∏„Å≥Êñπ‚îÄ‚îÄ„Åù„ÅÆ„Å≤„Å®„Å§„Å≤„Å®„Å§„ÅåË®™ÂïèËÄÖ„ÅÆÂç∞Ë±°„Å´„Å™„Çã„ÄÇ„ÉÜ„É≥„Éó„É¨„ÅåÈáèÁî£„Åô„ÇãÊï¥„Å£„ÅüÁÑ°ÂÄãÊÄß„Åï„Åß„ÅØ„ÄÅ‰ºù„Çè„Çâ„Å™„ÅÑ„ÇÇ„ÅÆ„Åå„ÅÇ„Çä„Åæ„Åô„ÄÇ
+          色、余白、フォントの選び方──そのひとつひとつが訪問者の印象になる。テンプレが量産する整った無個性さでは、伝わらないものがあります。
         </p>
       </article>
       <article class="reason">
         <div class="reason__num">02</div>
-        <h3 class="reason__title">„Äå„Çâ„Åó„Åï„Äç„ÅØË£ÖÈ£æ„Åß„ÅØ„Å™„ÅèÊßãÈÄ†</h3>
+        <h3 class="reason__title">「らしさ」は装飾ではなく構造</h3>
         <p class="reason__body">
-          „ÅÇ„Å™„Åü„ÅÆ‰ªï‰∫ã„ÅÆÊ∏©Â∫¶„ÇÑ„ÄÅ„ÅäÂÆ¢„Åï„Çì„Å∏„ÅÆ‰∏ÅÂØß„Åï„ÅÆÂØÜÂ∫¶„ÄÇ„Åù„Çå„ÅØ„Éê„Éä„Éº„ÇÑÂÜôÁúü„Åß„ÅØ„Å™„Åè„ÄÅ„Éö„Éº„Ç∏„ÅÆÊßãÈÄ†„Åù„ÅÆ„ÇÇ„ÅÆ„Å´ÂÆø„Çä„Åæ„Åô„ÄÇ„Å†„Åã„Çâ‰∏ÄÁ∑í„Å´„Äå„Çâ„Åó„Åï„Äç„ÇíÊé¢„Åô„Å®„Åì„Çç„Åã„ÇâÂßã„ÇÅ„Åæ„Åô„ÄÇ
+          あなたの仕事の温度や、お客さんへの丁寧さの密度。それはバナーや写真ではなく、ページの構造そのものに宿ります。だから一緒に「らしさ」を探すところから始めます。
         </p>
       </article>
       <article class="reason">
         <div class="reason__num">03</div>
-        <h3 class="reason__title">ÊªûÂú®„Åó„Åü„Åè„Å™„Çã‰ΩìÈ®ì„Çí</h3>
+        <h3 class="reason__title">滞在したくなる体験を</h3>
         <p class="reason__body">
-          Ë™≠„Çì„ÅßÈñâ„Åò„Çã„Çµ„Ç§„Éà„Å®„ÄÅ„Åæ„ÅüË®™„Çå„Åü„Åè„Å™„Çã„Çµ„Ç§„Éà„ÅÆÂ∑Æ„ÅØ„Äå‰ΩìÈ®ì„Äç„Å´„ÅÇ„Çä„Åæ„Åô„ÄÇ‰∏ñÁïåË¶≥„ÇíÊåÅ„Å£„ÅüHP„ÅØ„ÄÅ„Ç≥„É≥„ÉÜ„É≥„ÉÑ„ÅåÂêå„Åò„Åß„ÇÇË®òÊÜ∂„Å´ÊÆã„ÇãÊôÇÈñì„ÇíÈï∑„Åè„Åó„Åæ„Åô„ÄÇ
+          読んで閉じるサイトと、また訪れたくなるサイトの差は「体験」にあります。世界観を持ったHPは、コンテンツが同じでも記憶に残る時間を長くします。
         </p>
       </article>
     </div>
 
     <p class="mission__close reveal reveal--d3">
-      „Å†„Åã„Çâ„ÄÅ„Åæ„Åö„ÅÇ„Å™„Åü„ÅÆË©±„ÇíËÅû„Åã„Åõ„Å¶„Åè„Å†„Åï„ÅÑ„ÄÇ<br />
-      „Åù„Åì„Åã„Çâ„ÄÅ‰∏ñÁïåË¶≥„Çí‰∏ÄÁ∑í„Å´‰Ωú„Å£„Å¶„ÅÑ„Åç„Åæ„Åô„ÄÇ
+      だから、まずあなたの話を聞かせてください。<br />
+      そこから、世界観を一緒に作っていきます。
     </p>
 
     <a class="next-page" href="#profile">
       <span class="next-page__label">TURN TO NEXT PAGE</span>
       <span class="next-page__line"></span>
-      <span class="next-page__target">// 03 ‚Äî PROFILE</span>
+      <span class="next-page__target">// 03 — PROFILE</span>
     </a>
-    <div class="page-corner">‚Äî page 02 / 05 ‚Äî</div>
+    <div class="page-corner">— page 02 / 05 —</div>
 
     <!-- Organic torn paper boundary (to next page) -->
     <div class="page-tear" aria-hidden="true" data-tear="02">
@@ -1525,7 +1525,7 @@
     <header class="section-head reveal">
       <span class="section-head__num">// 03</span>
       <h2 class="section-head__title">Explorer profile</h2>
-      <span class="section-head__caption">DOSSIER ¬∑ BASE CAMP</span>
+      <span class="section-head__caption">DOSSIER · BASE CAMP</span>
     </header>
 
     <div class="dossier reveal reveal--d1">
@@ -1545,27 +1545,27 @@
           <tr><td>BASE</td><td>Tokyo, Japan</td></tr>
           <tr><td>JOURNEY START</td><td>2024</td></tr>
           <tr><td>EQUIPMENT</td><td>HTML / CSS / JavaScript / Figma</td></tr>
-          <tr><td>CURRENT QUEST</td><td>„Ç™„É™„Ç∏„Éä„É´HPÂà∂‰Ωú</td></tr>
-          <tr><td>INTERESTS</td><td>ËÉΩÊ•Ω„ÉªÁãÇË®Ä„ÄÅËá™ÁÑ∂„ÄÅÈùô„Åã„Å™Êúù</td></tr>
+          <tr><td>CURRENT QUEST</td><td>オリジナルHP制作</td></tr>
+          <tr><td>INTERESTS</td><td>能楽・狂言、自然、静かな朝</td></tr>
         </tbody>
       </table>
     </div>
 
     <div class="bio reveal reveal--d2">
       <p class="bio__lead">
-        „ÇÇ„Å®„ÇÇ„Å®„ÅØÂà•„ÅÆÂàÜÈáé„Åß„ÄÅ‰∫∫„Å®Âêë„ÅçÂêà„ÅÜ‰ªï‰∫ã„Çí„Åó„Å¶„ÅÑ„Åæ„Åó„Åü„ÄÇ
+        もともとは別の分野で、人と向き合う仕事をしていました。
       </p>
       <p class="bio__body">
-        Web„ÅÆ‰∏ñÁïå„Å´ÂÖ•„Å£„Åü„ÅÆ„ÅØ2024Âπ¥„ÄÇ„Ç≥„Éº„Éâ„ÅØ„Åæ„Å†Â≠¶„Å≥„ÅÆÈÄî‰∏≠„Åß„Åô„Åå„ÄÅ„Å†„Åã„Çâ„Åì„Åù‰æùÈ†ºËÄÖ„Å®‰∏ÄÁ∑í„Å´Êâã„ÇíÂãï„Åã„Åó„Å™„Åå„Çâ„ÄÅÁ¥çÂæó„ÅÆ„ÅÑ„ÅèÂΩ¢„Çí‰∏ÄÁ∑í„Å´Êé¢„Åó„Å¶„ÅÑ„Åè„Çπ„Çø„Ç§„É´„ÇíÂ§ßÂàá„Å´„Åó„Å¶„ÅÑ„Åæ„Åô„ÄÇÊäÄË°ìÁöÑ„Å™ÂÆåÊàêÂ∫¶„Å†„Åë„Åß„Å™„Åè„ÄÅ„Äå„Åì„Åì„Å´Êù•„Çã„Å®„Åª„Å£„Å®„Åô„Çã„Äç‰ΩìÈ®ìË®≠Ë®à„ÇíÁõÆÊåá„Åó„Å¶„ÄÇ
+        Webの世界に入ったのは2024年。コードはまだ学びの途中ですが、だからこそ依頼者と一緒に手を動かしながら、納得のいく形を一緒に探していくスタイルを大切にしています。技術的な完成度だけでなく、「ここに来るとほっとする」体験設計を目指して。
       </p>
     </div>
 
     <a class="next-page" href="#works">
       <span class="next-page__label">TURN TO NEXT PAGE</span>
       <span class="next-page__line"></span>
-      <span class="next-page__target">// 04 ‚Äî MAP</span>
+      <span class="next-page__target">// 04 — MAP</span>
     </a>
-    <div class="page-corner">‚Äî page 03 / 05 ‚Äî</div>
+    <div class="page-corner">— page 03 / 05 —</div>
 
     <!-- Organic torn paper boundary (to next page) -->
     <div class="page-tear" aria-hidden="true" data-tear="03">
@@ -1595,17 +1595,17 @@
     <header class="section-head reveal">
       <span class="section-head__num">// 04</span>
       <h2 class="section-head__title">Discovered planets</h2>
-      <span class="section-head__caption">3 charted ¬∑ 1 active</span>
+      <span class="section-head__caption">3 charted · 1 active</span>
     </header>
 
     <div class="planet-grid reveal reveal--d1">
       <article class="planet-card">
         <div class="planet-card__orb planet-card__orb--1"></div>
         <div class="planet-card__num">PLANET 01</div>
-        <h3 class="planet-card__title">„Ç´„Ç¶„É≥„Çª„É™„É≥„Ç∞„Ç™„Éï„Ç£„Çπ HP</h3>
-        <div class="planet-card__meta">HTML / CSS ¬∑ 2024</div>
+        <h3 class="planet-card__title">カウンセリングオフィス HP</h3>
+        <div class="planet-card__meta">HTML / CSS · 2024</div>
         <p class="planet-card__desc">
-          ËêΩ„Å°ÁùÄ„ÅÑ„Åü„Éà„Éº„É≥„Å®Ë™≠„Åø„ÇÑ„Åô„Åï„ÇíËª∏„Å´„Åó„Åü„ÄÅÂÄã‰∫∫„Ç´„Ç¶„É≥„Çª„É©„ÉºÂêë„Åë„ÅÆ„É©„É≥„Éá„Ç£„É≥„Ç∞„Éö„Éº„Ç∏„ÄÇ
+          落ち着いたトーンと読みやすさを軸にした、個人カウンセラー向けのランディングページ。
         </p>
         <a href="#" class="planet-card__visit">VISIT &rarr;</a>
       </article>
@@ -1614,9 +1614,9 @@
         <div class="planet-card__orb planet-card__orb--2"></div>
         <div class="planet-card__num">PLANET 02</div>
         <h3 class="planet-card__title">Uncharted</h3>
-        <div class="planet-card__meta">‚Äî ¬∑ COMING SOON</div>
+        <div class="planet-card__meta">— · COMING SOON</div>
         <p class="planet-card__desc">
-          ÁèæÂú®Êé¢Êüª‰∏≠„ÄÇÊ¨°„ÅÆÂà∂‰ΩúÂÆüÁ∏æ„Åå„Åì„Åì„Å´ÁùÄÈô∏‰∫àÂÆö„Åß„Åô„ÄÇ
+          現在探査中。次の制作実績がここに着陸予定です。
         </p>
         <span class="planet-card__lock-tag">EXPLORATION IN PROGRESS</span>
       </article>
@@ -1625,9 +1625,9 @@
         <div class="planet-card__orb planet-card__orb--3"></div>
         <div class="planet-card__num">PLANET 03</div>
         <h3 class="planet-card__title">Uncharted</h3>
-        <div class="planet-card__meta">‚Äî ¬∑ COMING SOON</div>
+        <div class="planet-card__meta">— · COMING SOON</div>
         <p class="planet-card__desc">
-          „Åæ„Å†Âú∞Âõ≥„Å´„Å™„ÅÑÊÉëÊòü„ÄÇÊñ∞„Åó„ÅÑÊåëÊà¶„ÇíÊ∫ñÂÇô‰∏≠„Åß„Åô„ÄÇ
+          まだ地図にない惑星。新しい挑戦を準備中です。
         </p>
         <span class="planet-card__lock-tag">EXPLORATION IN PROGRESS</span>
       </article>
@@ -1636,9 +1636,9 @@
     <a class="next-page" href="#contact">
       <span class="next-page__label">TURN TO NEXT PAGE</span>
       <span class="next-page__line"></span>
-      <span class="next-page__target">// 05 ‚Äî SIGNAL</span>
+      <span class="next-page__target">// 05 — SIGNAL</span>
     </a>
-    <div class="page-corner">‚Äî page 04 / 05 ‚Äî</div>
+    <div class="page-corner">— page 04 / 05 —</div>
 
     <!-- Organic torn paper boundary (to next page) -->
     <div class="page-tear" aria-hidden="true" data-tear="04">
@@ -1669,11 +1669,11 @@
       <div class="signal__icon" aria-hidden="true">
         <span class="signal__icon-dot"></span>
       </div>
-      <div class="signal__label">‚Äî SIGNAL ¬∑ 05 ‚Äî</div>
+      <div class="signal__label">— SIGNAL · 05 —</div>
       <h2 class="signal__title">Send a transmission</h2>
       <p class="signal__lead">
-        Êñ∞„Åó„ÅÑ‰æùÈ†º„ÇÑ„ÄÅ„Å°„Çá„Å£„Å®„Åó„ÅüÊÑüÊÉ≥„Åß„ÇÇÂ§ß‰∏àÂ§´„Åß„Åô„ÄÇ<br />
-        ‰ª•‰∏ã„ÅÆ„ÉÅ„É£„É≥„Éç„É´„Åã„Çâ‰ø°Âè∑„ÇíÈÄÅ„Å£„Å¶„Åè„Å†„Åï„ÅÑ„ÄÇ
+        新しい依頼や、ちょっとした感想でも大丈夫です。<br />
+        以下のチャンネルから信号を送ってください。
       </p>
 
       <div class="signal__channels">
@@ -1683,21 +1683,21 @@
         </a>
         <a class="channel" href="#">
           <span class="channel__type">GITHUB</span>
-          <span class="channel__addr">github.com/‚Äî</span>
+          <span class="channel__addr">github.com/—</span>
         </a>
         <a class="channel" href="#">
           <span class="channel__type">SOCIAL</span>
-          <span class="channel__addr">@‚Äî</span>
+          <span class="channel__addr">@—</span>
         </a>
       </div>
     </div>
 
     <div class="footer-coords reveal reveal--d1">
-      <span>BASE CAMP ¬∑ N 35¬∞42'18&quot; / E 139¬∞46'02&quot;</span>
-      <span>¬© Kimi ¬∑ FIELD JOURNAL 2026</span>
+      <span>BASE CAMP · N 35°42'18&quot; / E 139°46'02&quot;</span>
+      <span>© Kimi · FIELD JOURNAL 2026</span>
     </div>
 
-    <div class="page-corner">‚Äî page 05 / 05 ‚Äî END ‚Äî</div>
+    <div class="page-corner">— page 05 / 05 — END —</div>
   </section>
 
   <script>
@@ -1754,7 +1754,7 @@
         const minTotal = (v - deg) * 60;
         const min = Math.floor(minTotal);
         const sec = Math.floor((minTotal - min) * 60);
-        return `${prefix} ${deg}¬∞${String(min).padStart(2,'0')}'${String(sec).padStart(2,'0')}"`;
+        return `${prefix} ${deg}°${String(min).padStart(2,'0')}'${String(sec).padStart(2,'0')}"`;
       }
 
       function loop() {
@@ -1844,7 +1844,7 @@
         if (progress >= 40) lv = 3;
         if (progress >= 60) lv = 4;
         if (progress >= 80) lv = 5;
-        label.textContent = 'EXPLORER ¬∑ LV.0' + lv;
+        label.textContent = 'EXPLORER · LV.0' + lv;
       }
 
       let ticking = false;
@@ -1949,7 +1949,7 @@
        For each .page-tear, calculate how far the parent section is
        through "exiting" the viewport. Drive a CSS variable from 0 (at rest)
        to 1 (parent section fully scrolled past). The CSS uses this var to
-       lift, rotate, and shadow the tear strip ‚Äî giving a real-time
+       lift, rotate, and shadow the tear strip — giving a real-time
        "page being torn" feel as the user scrolls. */
     (function() {
       const tears = Array.from(document.querySelectorAll('.page-tear'));
@@ -1996,7 +1996,7 @@
 
           el.style.setProperty('--tear-progress', eased.toFixed(3));
 
-          // Pulse the "is-tearing" class only when progress crosses 0.15 ‚Üí 0.6 (entering)
+          // Pulse the "is-tearing" class only when progress crosses 0.15 → 0.6 (entering)
           if (eased > 0.15 && eased < 0.85 && !el.classList.contains('is-tearing')) {
             el.classList.add('is-tearing');
           } else if ((eased <= 0.15 || eased >= 0.85) && el.classList.contains('is-tearing')) {
@@ -2018,3 +2018,4 @@
   </script>
 </body>
 </html>
+
