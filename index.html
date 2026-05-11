@@ -1114,32 +1114,26 @@
       .next-page { margin-top: 64px; }
     }
 
-    /* ============ PAGE TEAR (organic torn paper boundary) ============ */
-    /* The tear sits at the bottom of each section (except contact),
-       overlapping into the next section. It represents the bottom of
-       the current page being ripped — showing aged paper underside,
-       a jagged fibrous edge, and a soft cast shadow. */
+    /* ============ PAGE CURL (real curl, SVG path interpolation) ============
+       Each section gets a full-section overlay that "lowers" from the top
+       like a page being turned. The overlay's bottom edge is a curve
+       (quadratic bezier) — its height & curvature are driven by scroll
+       progress via JS. The overlay shows the BACK of the page being
+       turned (aged cream paper), so as scroll progresses, the previous
+       section fades out behind a sweeping curved sheet that reveals the
+       next section underneath. */
     section { position: relative; }
 
-    .page-tear {
+    .page-curl {
       position: absolute;
-      left: -2%;
-      right: -2%;
-      bottom: -22px;            /* small overhang into next section */
-      height: 80px;
+      inset: 0;                  /* covers the full section */
       pointer-events: none;
-      z-index: 6;
-      will-change: transform;
+      z-index: 7;
+      overflow: visible;
+      --curl-progress: 0;
     }
 
-    /* The actual torn paper strip — cream backside, ragged top edge */
-    .page-tear__strip {
-      position: absolute;
-      inset: 0;
-      filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.55))
-              drop-shadow(0 3px 5px rgba(0, 0, 0, 0.4));
-    }
-    .page-tear__strip svg {
+    .page-curl__svg {
       position: absolute;
       inset: 0;
       width: 100%;
@@ -1148,98 +1142,38 @@
       overflow: visible;
     }
 
-    /* Char/burn accent along the very edge of the tear */
-    .page-tear__char {
-      position: absolute;
-      left: 0; right: 0;
-      top: 0;
-      height: 28px;
-      mix-blend-mode: multiply;
-      opacity: 0.65;
-      pointer-events: none;
-    }
-    .page-tear__char svg {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      display: block;
-      overflow: visible;
-    }
+    /* The curl overlay sits on top of section content. As scroll progresses
+       through this section's exit zone, JS animates the path attributes:
+         - `.page-curl__back`  : cream paper sheet that grows downward
+         - `.page-curl__edge`  : char-colored stroke on the curve edge
+         - `.page-curl__shadow`: soft shadow just below the curve
 
-    /* Fine fiber ticks above the main tear (broken pulp suggestion) */
-    .page-tear__fibers {
-      position: absolute;
-      left: 0; right: 0;
-      top: -14px;
-      height: 22px;
-      mix-blend-mode: screen;
+       At progress 0, the sheet height is 0 (no visible curl).
+       At progress 0.5, the sheet covers ~half the section with a deep
+       downward-bulging curve at the bottom — like a page mid-turn.
+       At progress 1, the sheet covers the full section (next section
+       fully revealed underneath through natural document flow). */
+
+    .page-curl__back {
+      fill: url(#paper-cream-rich);
+      filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.55));
+    }
+    .page-curl__edge {
+      fill: none;
+      stroke: #5a2e18;
+      stroke-width: 1.5;
       opacity: 0.55;
-      pointer-events: none;
+      stroke-linecap: round;
     }
-    .page-tear__fibers svg {
-      position: absolute; inset: 0; width: 100%; height: 100%;
-      display: block; overflow: visible;
+    .page-curl__shadow {
+      fill: rgba(0, 0, 0, 0.35);
+      filter: blur(10px);
     }
-
-    /* Subtle organic wobble — adds living-paper feel even at rest */
-    @keyframes tearBreathe {
-      0%, 100% { transform: translateY(0) scaleY(1); }
-      50%      { transform: translateY(-1px) scaleY(1.015); }
-    }
-    .page-tear { animation: tearBreathe 7s ease-in-out infinite; }
-
-    /* Intensified state: applied while the section is being scrolled away.
-       The tear "lifts" with a stronger curl shadow, simulating the page
-       being torn in real time. JS toggles this in the 0.05-0.95 progress
-       window so it stays on through most of the transition. */
-    .page-tear.is-tearing .page-tear__strip {
-      animation: tearLift 1.4s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
-    }
-    @keyframes tearLift {
-      0%   { translate: 0 0;      rotate: x 0deg; }
-      35%  { translate: 0 -6px;   rotate: x 4deg; }
-      70%  { translate: 0 -3px;   rotate: x 2deg; }
-      100% { translate: 0 0;      rotate: x 0deg; }
-    }
-
-    /* Scroll-progress driven shift: var(--tear-progress) is set per-section
-       by JS as the section approaches viewport exit. Larger value = the
-       tear strip lifts more, the curl shadow intensifies. Values are large
-       enough to be perceptible mid-scroll. */
-    .page-tear {
-      --tear-progress: 0;
-      transform-origin: center top;
-    }
-    @media (prefers-reduced-motion: no-preference) {
-      .page-tear__strip {
-        transform: translateY(calc(var(--tear-progress) * -42px))
-                   rotateX(calc(var(--tear-progress) * 26deg))
-                   scaleY(calc(1 + var(--tear-progress) * 0.08));
-        transform-origin: center top;
-        filter: drop-shadow(0 calc(8px + var(--tear-progress) * 28px)
-                              calc(14px + var(--tear-progress) * 22px)
-                              rgba(0, 0, 0, calc(0.55 + var(--tear-progress) * 0.3)))
-                drop-shadow(0 3px 5px rgba(0, 0, 0, 0.4));
-        transition: transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1),
-                    filter    0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
-      }
-      /* The whole tear assembly nudges up slightly too, so the boundary
-         doesn't feel glued to a fixed strip line. */
-      .page-tear {
-        transform: translateY(calc(var(--tear-progress) * -8px));
-      }
-    }
-
-    /* Reduced motion: skip wobble & intensify */
-    @media (prefers-reduced-motion: reduce) {
-      .page-tear { animation: none; }
-      .page-tear.is-tearing { animation: none; }
-    }
-
-    /* Mobile: smaller tear footprint */
-    @media (max-width: 720px) {
-      .page-tear { height: 56px; bottom: -14px; }
+    /* Optional highlight along the curve top — gives a sense of paper thickness */
+    .page-curl__highlight {
+      fill: none;
+      stroke: rgba(255, 240, 200, 0.4);
+      stroke-width: 0.8;
     }
   </style>
 </head>
@@ -1291,6 +1225,16 @@
         <stop offset="0%"  stop-color="#1a0e08" stop-opacity="0.6"/>
         <stop offset="40%" stop-color="#5a2e18" stop-opacity="0.3"/>
         <stop offset="100%" stop-color="#8a4a28" stop-opacity="0"/>
+      </linearGradient>
+      <!-- Rich cream paper for the back of a curled page (vertical gradient
+           with subtle aged variation; darker bottom = bottom of the curl
+           catches less light). -->
+      <linearGradient id="paper-cream-rich" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#e8d4a6"/>
+        <stop offset="35%"  stop-color="#d8c094"/>
+        <stop offset="70%"  stop-color="#c9a876"/>
+        <stop offset="95%"  stop-color="#a07a4a"/>
+        <stop offset="100%" stop-color="#5a3a22"/>
       </linearGradient>
     </defs>
   </svg>
@@ -1433,26 +1377,15 @@
 
     <div class="page-corner">— page 01 / 05 —</div>
 
-    <!-- Organic torn paper boundary (to next page) -->
-    <div class="page-tear" aria-hidden="true" data-tear="01">
-      <div class="page-tear__strip">
-        <svg viewBox="0 0 1500 120" preserveAspectRatio="none">
-          <path d="M -50 18 L 1550 18 L 1550 140 L -50 140 Z"
-                fill="url(#paper-cream)" filter="url(#paper-tear)"/>
-        </svg>
-      </div>
-      <div class="page-tear__char">
-        <svg viewBox="0 0 1500 40" preserveAspectRatio="none">
-          <path d="M -50 4 L 1550 4 L 1550 22 L -50 22 Z"
-                fill="url(#paper-char)" filter="url(#paper-tear-fine)"/>
-        </svg>
-      </div>
-      <div class="page-tear__fibers">
-        <svg viewBox="0 0 1500 30" preserveAspectRatio="none">
-          <path d="M -50 12 L 1550 12 L 1550 18 L -50 18 Z"
-                fill="url(#paper-cream)" filter="url(#paper-tear-fine)" opacity="0.7"/>
-        </svg>
-      </div>
+    <!-- Page curl overlay (real curl that lowers from top as scroll progresses).
+         Path d attributes are animated by JS via scroll-progress interpolation. -->
+    <div class="page-curl" aria-hidden="true" data-curl="01">
+      <svg class="page-curl__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path class="page-curl__shadow"    d="M 0 0 L 100 0 L 100 0 L 0 0 Z"/>
+        <path class="page-curl__back"      d="M 0 0 L 100 0 L 100 0 L 0 0 Z"/>
+        <path class="page-curl__edge"      d="M 0 0 L 100 0"/>
+        <path class="page-curl__highlight" d="M 0 0 L 100 0"/>
+      </svg>
     </div>
   </section>
 
@@ -1505,26 +1438,14 @@
     </a>
     <div class="page-corner">— page 02 / 05 —</div>
 
-    <!-- Organic torn paper boundary (to next page) -->
-    <div class="page-tear" aria-hidden="true" data-tear="02">
-      <div class="page-tear__strip">
-        <svg viewBox="0 0 1500 120" preserveAspectRatio="none">
-          <path d="M -50 18 L 1550 18 L 1550 140 L -50 140 Z"
-                fill="url(#paper-cream)" filter="url(#paper-tear)"/>
-        </svg>
-      </div>
-      <div class="page-tear__char">
-        <svg viewBox="0 0 1500 40" preserveAspectRatio="none">
-          <path d="M -50 4 L 1550 4 L 1550 22 L -50 22 Z"
-                fill="url(#paper-char)" filter="url(#paper-tear-fine)"/>
-        </svg>
-      </div>
-      <div class="page-tear__fibers">
-        <svg viewBox="0 0 1500 30" preserveAspectRatio="none">
-          <path d="M -50 12 L 1550 12 L 1550 18 L -50 18 Z"
-                fill="url(#paper-cream)" filter="url(#paper-tear-fine)" opacity="0.7"/>
-        </svg>
-      </div>
+    <!-- Page curl overlay -->
+    <div class="page-curl" aria-hidden="true" data-curl="02">
+      <svg class="page-curl__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path class="page-curl__shadow"    d="M 0 0 L 100 0 L 100 0 L 0 0 Z"/>
+        <path class="page-curl__back"      d="M 0 0 L 100 0 L 100 0 L 0 0 Z"/>
+        <path class="page-curl__edge"      d="M 0 0 L 100 0"/>
+        <path class="page-curl__highlight" d="M 0 0 L 100 0"/>
+      </svg>
     </div>
   </section>
 
@@ -1575,26 +1496,14 @@
     </a>
     <div class="page-corner">— page 03 / 05 —</div>
 
-    <!-- Organic torn paper boundary (to next page) -->
-    <div class="page-tear" aria-hidden="true" data-tear="03">
-      <div class="page-tear__strip">
-        <svg viewBox="0 0 1500 120" preserveAspectRatio="none">
-          <path d="M -50 18 L 1550 18 L 1550 140 L -50 140 Z"
-                fill="url(#paper-cream)" filter="url(#paper-tear)"/>
-        </svg>
-      </div>
-      <div class="page-tear__char">
-        <svg viewBox="0 0 1500 40" preserveAspectRatio="none">
-          <path d="M -50 4 L 1550 4 L 1550 22 L -50 22 Z"
-                fill="url(#paper-char)" filter="url(#paper-tear-fine)"/>
-        </svg>
-      </div>
-      <div class="page-tear__fibers">
-        <svg viewBox="0 0 1500 30" preserveAspectRatio="none">
-          <path d="M -50 12 L 1550 12 L 1550 18 L -50 18 Z"
-                fill="url(#paper-cream)" filter="url(#paper-tear-fine)" opacity="0.7"/>
-        </svg>
-      </div>
+    <!-- Page curl overlay -->
+    <div class="page-curl" aria-hidden="true" data-curl="03">
+      <svg class="page-curl__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path class="page-curl__shadow"    d="M 0 0 L 100 0 L 100 0 L 0 0 Z"/>
+        <path class="page-curl__back"      d="M 0 0 L 100 0 L 100 0 L 0 0 Z"/>
+        <path class="page-curl__edge"      d="M 0 0 L 100 0"/>
+        <path class="page-curl__highlight" d="M 0 0 L 100 0"/>
+      </svg>
     </div>
   </section>
 
@@ -1648,26 +1557,14 @@
     </a>
     <div class="page-corner">— page 04 / 05 —</div>
 
-    <!-- Organic torn paper boundary (to next page) -->
-    <div class="page-tear" aria-hidden="true" data-tear="04">
-      <div class="page-tear__strip">
-        <svg viewBox="0 0 1500 120" preserveAspectRatio="none">
-          <path d="M -50 18 L 1550 18 L 1550 140 L -50 140 Z"
-                fill="url(#paper-cream)" filter="url(#paper-tear)"/>
-        </svg>
-      </div>
-      <div class="page-tear__char">
-        <svg viewBox="0 0 1500 40" preserveAspectRatio="none">
-          <path d="M -50 4 L 1550 4 L 1550 22 L -50 22 Z"
-                fill="url(#paper-char)" filter="url(#paper-tear-fine)"/>
-        </svg>
-      </div>
-      <div class="page-tear__fibers">
-        <svg viewBox="0 0 1500 30" preserveAspectRatio="none">
-          <path d="M -50 12 L 1550 12 L 1550 18 L -50 18 Z"
-                fill="url(#paper-cream)" filter="url(#paper-tear-fine)" opacity="0.7"/>
-        </svg>
-      </div>
+    <!-- Page curl overlay -->
+    <div class="page-curl" aria-hidden="true" data-curl="04">
+      <svg class="page-curl__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path class="page-curl__shadow"    d="M 0 0 L 100 0 L 100 0 L 0 0 Z"/>
+        <path class="page-curl__back"      d="M 0 0 L 100 0 L 100 0 L 0 0 Z"/>
+        <path class="page-curl__edge"      d="M 0 0 L 100 0"/>
+        <path class="page-curl__highlight" d="M 0 0 L 100 0"/>
+      </svg>
     </div>
   </section>
 
@@ -1953,75 +1850,101 @@
       items.forEach(item => observer.observe(item));
     })();
 
-    /* ============ PAGE TEAR (scroll-driven progress) ============
-       For each .page-tear, calculate how far the parent section is
-       through "exiting" the viewport. Drive a CSS variable from 0 (at rest)
-       to 1 (parent section fully scrolled past). The CSS uses this var to
-       lift, rotate, and shadow the tear strip — giving a real-time
-       "page being torn" feel as the user scrolls. */
+    /* ============ PAGE CURL (scroll-driven SVG path interpolation) ============
+       For each .page-curl overlay, compute how far its parent section is
+       through "exiting" the viewport (0 = section just entered top of viewport,
+       1 = section completely scrolled past the top). From that progress we
+       compute four SVG path `d` attributes that together draw a curled
+       page sweeping down from the top:
+         - back     : cream-paper sheet (the back of the page that is being turned)
+         - shadow   : soft shadow falling beneath the curl edge
+         - edge     : char-colored stroke along the curve
+         - highlight: thin bright stroke (paper thickness)
+       The curl edge is a quadratic bezier whose control point bulges down
+       at mid-progress and flattens at the ends — like a real page peel. */
     (function() {
-      const tears = Array.from(document.querySelectorAll('.page-tear'));
-      if (!tears.length) return;
-
-      // Cache parent section per tear element (parent is always the section)
-      const items = tears.map(tear => ({
-        el: tear,
-        section: tear.closest('section')
-      }));
+      const curls = Array.from(document.querySelectorAll('.page-curl'));
+      if (!curls.length) return;
 
       const reduceMotion = window.matchMedia &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (reduceMotion) return;
 
-      let ticking = false;
+      // Cache the relevant DOM nodes per curl
+      const items = curls.map(curl => ({
+        el: curl,
+        section: curl.closest('section'),
+        back:      curl.querySelector('.page-curl__back'),
+        shadow:    curl.querySelector('.page-curl__shadow'),
+        edge:      curl.querySelector('.page-curl__edge'),
+        highlight: curl.querySelector('.page-curl__highlight')
+      }));
+
+      // Cubic ease in/out — gives organic feel to the curl progression
+      function ease(t) {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      }
 
       function update() {
         const vh = window.innerHeight;
-        items.forEach(({ el, section }) => {
-          if (!section) return;
+        items.forEach(({ el, section, back, shadow, edge, highlight }) => {
+          if (!section || !back) return;
           const rect = section.getBoundingClientRect();
-          // The section is "exiting" when its bottom approaches the viewport top.
-          // tear-zone: the last 60% of the section's height while scrolling out.
-          // progress = 0 when section bottom is at viewport bottom or below
-          // progress = 1 when section bottom has reached viewport top
-          const sectionH = rect.height;
-          const exitStart = vh;          // px from top of viewport at which exit "begins"
-          const exitEnd   = 0;           // px from top of viewport at which exit completes
-          // distance section bottom is from viewport top (positive = still below top)
+          // progress: 0 when section bottom is at/below viewport bottom;
+          // 1 when section bottom has reached viewport top.
           const bottomFromTop = rect.bottom;
           let progress;
-          if (bottomFromTop >= exitStart) {
-            progress = 0;
-          } else if (bottomFromTop <= exitEnd) {
-            progress = 1;
-          } else {
-            progress = 1 - (bottomFromTop - exitEnd) / (exitStart - exitEnd);
-          }
-          // Apply easing for organic feel (cubic ease-in-out)
-          const eased = progress < 0.5
-            ? 4 * progress * progress * progress
-            : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+          if (bottomFromTop >= vh)      progress = 0;
+          else if (bottomFromTop <= 0)  progress = 1;
+          else                          progress = 1 - bottomFromTop / vh;
 
-          el.style.setProperty('--tear-progress', eased.toFixed(3));
+          const eased = reduceMotion ? progress : ease(progress);
 
-          // is-tearing class stays on through most of the transition (0.05-0.95)
-          // so the lift keyframe animation has time to play.
-          if (eased > 0.05 && eased < 0.95 && !el.classList.contains('is-tearing')) {
-            el.classList.add('is-tearing');
-          } else if ((eased <= 0.05 || eased >= 0.95) && el.classList.contains('is-tearing')) {
-            el.classList.remove('is-tearing');
-          }
+          // h: how far the curled sheet has come down (0-100 in viewBox units)
+          const h = eased * 100;
+          // curve bulge: peaks at mid-progress (sin curve), flattens at ends
+          const curve = Math.sin(eased * Math.PI) * 18;
+
+          // back path: top half of the sheet is the page back (cream paper);
+          // bottom edge is a quadratic bezier curving downward.
+          //   start (0,0) → top-right (100,0) → right edge to (100,h)
+          //   → bezier to (0,h) via control (50, h+curve)
+          back.setAttribute('d',
+            `M 0 0 L 100 0 L 100 ${h.toFixed(2)} ` +
+            `Q 50 ${(h + curve).toFixed(2)} 0 ${h.toFixed(2)} Z`);
+
+          // shadow: a thin band that follows the curl curve, displaced
+          // slightly downward. CSS blurs it for a soft cast shadow.
+          shadow.setAttribute('d',
+            `M 0 ${(h + 2).toFixed(2)} ` +
+            `Q 50 ${(h + curve + 6).toFixed(2)} 100 ${(h + 2).toFixed(2)} ` +
+            `L 100 ${(h + 10).toFixed(2)} ` +
+            `Q 50 ${(h + curve + 14).toFixed(2)} 0 ${(h + 10).toFixed(2)} Z`);
+
+          // edge: char/sepia stroke along the very curve line
+          edge.setAttribute('d',
+            `M 0 ${h.toFixed(2)} ` +
+            `Q 50 ${(h + curve).toFixed(2)} 100 ${h.toFixed(2)}`);
+
+          // highlight: subtle bright stroke just above the edge (paper thickness)
+          highlight.setAttribute('d',
+            `M 0 ${(h - 1).toFixed(2)} ` +
+            `Q 50 ${(h + curve - 2).toFixed(2)} 100 ${(h - 1).toFixed(2)}`);
+
+          // Optional: track progress as CSS var (useful for future tweaks)
+          el.style.setProperty('--curl-progress', eased.toFixed(3));
         });
-        ticking = false;
       }
 
-      window.addEventListener('scroll', () => {
+      let ticking = false;
+      function onScroll() {
         if (!ticking) {
-          requestAnimationFrame(update);
+          requestAnimationFrame(() => { update(); ticking = false; });
           ticking = true;
         }
-      }, { passive: true });
-      window.addEventListener('resize', update, { passive: true });
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll, { passive: true });
       update();
     })();
   </script>
