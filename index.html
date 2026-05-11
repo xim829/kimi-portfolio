@@ -1124,13 +1124,23 @@
        next section underneath. */
     section { position: relative; }
 
+    /* The curl overlay is fixed to the viewport, not the section.
+       This keeps it visible during the entire scroll transition,
+       independent of how far the parent section has moved. JS toggles
+       opacity so only the currently-exiting section's curl is visible. */
     .page-curl {
-      position: absolute;
-      inset: 0;                  /* covers the full section */
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 100vh;
       pointer-events: none;
-      z-index: 7;
+      z-index: 50;
       overflow: visible;
+      opacity: 0;
+      transition: opacity 0.18s ease;
       --curl-progress: 0;
+    }
+    .page-curl.is-active {
+      opacity: 1;
     }
 
     .page-curl__svg {
@@ -1899,26 +1909,34 @@
 
           const eased = reduceMotion ? progress : ease(progress);
 
+          // Toggle visibility — only show this curl when its section is
+          // actively transitioning out of the viewport.
+          if (progress > 0.02 && progress < 0.98) {
+            if (!el.classList.contains('is-active')) el.classList.add('is-active');
+          } else {
+            if (el.classList.contains('is-active')) el.classList.remove('is-active');
+          }
+
           // h: how far the curled sheet has come down (0-100 in viewBox units)
           const h = eased * 100;
           // curve bulge: peaks at mid-progress (sin curve), flattens at ends
           const curve = Math.sin(eased * Math.PI) * 18;
 
-          // back path: top half of the sheet is the page back (cream paper);
-          // bottom edge is a quadratic bezier curving downward.
+          // back path: cream paper sheet covering the top portion of the
+          // viewport; bottom edge is a quadratic bezier curving downward.
           //   start (0,0) → top-right (100,0) → right edge to (100,h)
           //   → bezier to (0,h) via control (50, h+curve)
           back.setAttribute('d',
             `M 0 0 L 100 0 L 100 ${h.toFixed(2)} ` +
             `Q 50 ${(h + curve).toFixed(2)} 0 ${h.toFixed(2)} Z`);
 
-          // shadow: a thin band that follows the curl curve, displaced
-          // slightly downward. CSS blurs it for a soft cast shadow.
+          // shadow: a soft band that follows the curl curve, displaced
+          // slightly below it. CSS blurs it for a cast-shadow feel.
           shadow.setAttribute('d',
             `M 0 ${(h + 2).toFixed(2)} ` +
             `Q 50 ${(h + curve + 6).toFixed(2)} 100 ${(h + 2).toFixed(2)} ` +
-            `L 100 ${(h + 10).toFixed(2)} ` +
-            `Q 50 ${(h + curve + 14).toFixed(2)} 0 ${(h + 10).toFixed(2)} Z`);
+            `L 100 ${(h + curve + 14).toFixed(2)} ` +
+            `Q 50 ${(h + curve + 18).toFixed(2)} 0 ${(h + curve + 14).toFixed(2)} Z`);
 
           // edge: char/sepia stroke along the very curve line
           edge.setAttribute('d',
@@ -1930,7 +1948,7 @@
             `M 0 ${(h - 1).toFixed(2)} ` +
             `Q 50 ${(h + curve - 2).toFixed(2)} 100 ${(h - 1).toFixed(2)}`);
 
-          // Optional: track progress as CSS var (useful for future tweaks)
+          // Track progress as CSS var (useful for future tweaks)
           el.style.setProperty('--curl-progress', eased.toFixed(3));
         });
       }
