@@ -161,8 +161,7 @@
     .hud > * { pointer-events: auto; }
 
     .status {
-      background: rgba(26,14,8,0.55);
-      backdrop-filter: blur(6px);
+      background: rgba(26,14,8,0.78);
       padding: 10px 14px;
       border: 1px solid rgba(244,234,212,0.12);
     }
@@ -1096,17 +1095,6 @@
     .hero .next-page { position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%); margin: 0; }
     .hero .next-page:hover { transform: translateX(-50%) translateY(4px); }
 
-    /* ============ SCROLL SNAP (page-by-page settle) ============ */
-    @media (prefers-reduced-motion: no-preference) and (min-width: 721px) {
-      html {
-        scroll-snap-type: y proximity;
-      }
-      .hero, .mission, .profile, .works, .contact {
-        scroll-snap-align: start;
-        scroll-snap-stop: normal;
-      }
-    }
-
     @media (max-width: 720px) {
       .boot__title { font-size: 26px; }
       .boot__sub { letter-spacing: 0.3em; font-size: 10px; }
@@ -1134,8 +1122,11 @@
       height: 100vh;
       min-height: 0;
       overflow: hidden;
-      will-change: clip-path;
     }
+    /* Only the section currently mid-transition is promoted to its own
+       compositor layer (toggled by JS). Keeping all 5 full-screen pages
+       promoted at once was the main source of scroll sluggishness. */
+    .stage > section.is-peeling { will-change: clip-path; }
     .stage > #hero    { z-index: 50; }
     .stage > #mission { z-index: 40; }
     .stage > #profile { z-index: 30; }
@@ -1146,7 +1137,7 @@
        height: one viewport-worth of scroll per transition (+1 to rest on
        the final page). */
     .deck-spacer {
-      height: 1300vh;        /* 4 transitions × 3 viewports each + 1 to rest */
+      height: 2500vh;        /* 4 transitions × 6 viewports each + 1 to rest */
       pointer-events: none;
     }
 
@@ -1175,7 +1166,8 @@
     }
     .page-curl__back {
       fill: url(#paper-cream-rich);
-      filter: drop-shadow(-6px -6px 14px rgba(0, 0, 0, 0.5));
+      /* lighter shadow = smaller raster region recomputed each scroll frame */
+      filter: drop-shadow(-3px -3px 6px rgba(0, 0, 0, 0.45));
     }
     .page-curl__edge {
       fill: none;
@@ -1656,9 +1648,13 @@
       let prevMx = mx, prevMy = my;
       let lastAngle = 0;
 
+      let rafId = null;
+      let coordDirty = true;
       window.addEventListener('mousemove', (e) => {
         mx = e.clientX;
         my = e.clientY;
+        coordDirty = true;
+        if (rafId === null) rafId = requestAnimationFrame(loop);  // wake the loop
       }, { passive: true });
 
       window.addEventListener('mousedown', () => cursor.classList.add('is-click'));
@@ -1708,13 +1704,25 @@
         prevMx = mx;
         prevMy = my;
 
-        // update coord readout (Tokyo-ish base)
-        coordLat.textContent = fmtCoord('N', 35, my, window.innerHeight);
-        coordLng.textContent = fmtCoord('E', 139, mx, window.innerWidth);
+        // update coord readout only when the pointer actually moved
+        if (coordDirty) {
+          coordLat.textContent = fmtCoord('N', 35, my, window.innerHeight);
+          coordLng.textContent = fmtCoord('E', 139, mx, window.innerWidth);
+          coordDirty = false;
+        }
 
-        requestAnimationFrame(loop);
+        // keep animating only while the cursor is still catching up to the
+        // pointer or the needle is still easing back to north; otherwise stop
+        // the loop entirely so an idle cursor costs nothing.
+        const caughtUp = Math.abs(mx - cx) < 0.1 && Math.abs(my - cy) < 0.1;
+        const needleSettled = speed <= 0.5 && Math.abs(lastAngle) < 0.1;
+        if (caughtUp && needleSettled) {
+          rafId = null;
+        } else {
+          rafId = requestAnimationFrame(loop);
+        }
       }
-      loop();
+      rafId = requestAnimationFrame(loop);
     })();
 
     /* ============ PARALLAX (subtle) ============ */
@@ -1909,15 +1917,29 @@
       function setPeel(item, p) {
         const { section, curl, back, edge, highlight } = item;
 
+        // state guard: avoid re-writing identical styles every scroll frame
         if (p <= 0.0005) {                 // flat: fully visible, no curl
-          section.style.clipPath = '';
-          if (curl) curl.classList.remove('is-active');
+          if (item.state !== 'flat') {
+            section.style.clipPath = '';
+            section.classList.remove('is-peeling');
+            if (curl) curl.classList.remove('is-active');
+            item.state = 'flat';
+          }
           return;
         }
         if (p >= 0.9995) {                 // fully peeled away: reveals next
-          section.style.clipPath = 'polygon(0 0, 0 0, 0 0)';
-          if (curl) curl.classList.remove('is-active');
+          if (item.state !== 'gone') {
+            section.style.clipPath = 'polygon(0 0, 0 0, 0 0)';
+            section.classList.remove('is-peeling');
+            if (curl) curl.classList.remove('is-active');
+            item.state = 'gone';
+          }
           return;
+        }
+        if (item.state !== 'peeling') {
+          section.classList.add('is-peeling');
+          if (curl) curl.classList.add('is-active');
+          item.state = 'peeling';
         }
 
         const e = reduceMotion ? p : ease(p);
@@ -1945,11 +1967,10 @@
         if (back)      back.setAttribute('d', backD);
         if (edge)      edge.setAttribute('d', line);
         if (highlight) highlight.setAttribute('d', line);
-        if (curl)      curl.classList.add('is-active');
       }
 
       function update() {
-        const Z  = window.innerHeight * 3;   // scroll length per page turn
+        const Z  = window.innerHeight * 6;   // scroll length per page turn
         const sx = window.scrollY || 0;
         peelers.forEach(item => {
           const p = clamp((sx - item.i * Z) / Z, 0, 1);
@@ -1978,7 +1999,7 @@
             if (!(href in idToIndex)) return;
             ev.preventDefault();
             window.scrollTo({
-              top: idToIndex[href] * window.innerHeight * 3,
+              top: idToIndex[href] * window.innerHeight * 6,
               behavior: 'smooth'
             });
           });
