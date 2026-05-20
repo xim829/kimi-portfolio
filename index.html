@@ -1114,76 +1114,80 @@
       .next-page { margin-top: 64px; }
     }
 
-    /* ============ PAGE CURL (real curl, SVG path interpolation) ============
-       Each section gets a full-section overlay that "lowers" from the top
-       like a page being turned. The overlay's bottom edge is a curve
-       (quadratic bezier) — its height & curvature are driven by scroll
-       progress via JS. The overlay shows the BACK of the page being
-       turned (aged cream paper), so as scroll progresses, the previous
-       section fades out behind a sweeping curved sheet that reveals the
-       next section underneath. */
-    section { position: relative; }
-
-    /* The curl overlay is fixed to the viewport, not the section.
-       This keeps it visible during the entire scroll transition,
-       independent of how far the parent section has moved. JS toggles
-       opacity so only the currently-exiting section's curl is visible. */
-    .page-curl {
+    /* ============ DECK (stacked pages, corner-peel transitions) ============
+       Instead of sections flowing vertically, all sections are stacked on
+       top of each other inside a fixed full-screen stage. A tall invisible
+       spacer drives the scroll. As you scroll, the TOP section peels away
+       from its bottom-right corner (a diagonal page-fold), revealing the
+       next section that was sitting directly underneath the whole time. */
+    .stage {
       position: fixed;
-      top: 0; left: 0; right: 0;
-      height: 100vh;
-      pointer-events: none;
-      z-index: 50;
-      overflow: visible;
-      opacity: 0;
-      transition: opacity 0.18s ease;
-      --curl-progress: 0;
+      inset: 0;
+      z-index: 1;            /* below HUD(100), cursor(9999), boot(10000) */
+      overflow: hidden;
     }
-    .page-curl.is-active {
-      opacity: 1;
+    /* Each section becomes an absolutely-stacked, full-viewport page.
+       Earlier sections sit ON TOP (higher z-index) so they peel off first. */
+    .stage > section {
+      position: absolute;
+      inset: 0;
+      height: 100vh;
+      min-height: 0;
+      overflow: hidden;
+      will-change: clip-path;
+    }
+    .stage > #hero    { z-index: 50; }
+    .stage > #mission { z-index: 40; }
+    .stage > #profile { z-index: 30; }
+    .stage > #works   { z-index: 20; }
+    .stage > #contact { z-index: 10; }
+
+    /* The spacer lives in normal flow and gives the document its scroll
+       height: one viewport-worth of scroll per transition (+1 to rest on
+       the final page). */
+    .deck-spacer {
+      height: 500vh;
+      pointer-events: none;
     }
 
+    /* ============ CORNER PEEL OVERLAY ============
+       Drawn as a child of the peeling section (so it's clipped together
+       with it). Shows the cream-paper BACK of the lifted page (a folded
+       triangle) plus a crease line. JS sets the path geometry per scroll
+       progress. The fold is the reflection of the bottom-right corner
+       across the moving diagonal crease — geometrically a real flat fold. */
+    .page-curl {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 30;          /* above section content (max ~10) */
+      opacity: 0;
+    }
+    .page-curl.is-active { opacity: 1; }
     .page-curl__svg {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
       display: block;
-      overflow: visible;
     }
-
-    /* The curl overlay sits on top of section content. As scroll progresses
-       through this section's exit zone, JS animates the path attributes:
-         - `.page-curl__back`  : cream paper sheet that grows downward
-         - `.page-curl__edge`  : char-colored stroke on the curve edge
-         - `.page-curl__shadow`: soft shadow just below the curve
-
-       At progress 0, the sheet height is 0 (no visible curl).
-       At progress 0.5, the sheet covers ~half the section with a deep
-       downward-bulging curve at the bottom — like a page mid-turn.
-       At progress 1, the sheet covers the full section (next section
-       fully revealed underneath through natural document flow). */
-
     .page-curl__back {
       fill: url(#paper-cream-rich);
-      filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.55));
+      filter: drop-shadow(-6px -6px 14px rgba(0, 0, 0, 0.5));
     }
     .page-curl__edge {
       fill: none;
       stroke: #5a2e18;
-      stroke-width: 1.5;
-      opacity: 0.55;
+      stroke-width: 1.2;
+      opacity: 0.6;
       stroke-linecap: round;
     }
-    .page-curl__shadow {
-      fill: rgba(0, 0, 0, 0.35);
-      filter: blur(10px);
-    }
-    /* Optional highlight along the curve top — gives a sense of paper thickness */
     .page-curl__highlight {
       fill: none;
-      stroke: rgba(255, 240, 200, 0.4);
-      stroke-width: 0.8;
+      stroke: rgba(255, 244, 214, 0.5);
+      stroke-width: 0.6;
     }
   </style>
 </head>
@@ -1319,6 +1323,9 @@
     </nav>
   </div>
 
+  <!-- ============ DECK (fixed stage holding all stacked pages) ============ -->
+  <div class="stage" id="stage">
+
   <!-- ============ HERO ============ -->
   <section class="hero" id="hero">
     <!-- stars -->
@@ -1387,14 +1394,12 @@
 
     <div class="page-corner">— page 01 / 05 —</div>
 
-    <!-- Page curl overlay (real curl that lowers from top as scroll progresses).
-         Path d attributes are animated by JS via scroll-progress interpolation. -->
+    <!-- Page curl overlay (corner peel, JS-driven) -->
     <div class="page-curl" aria-hidden="true" data-curl="01">
       <svg class="page-curl__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path class="page-curl__shadow"    d="M 0 0 L 100 0 L 100 0 L 0 0 Z"/>
-        <path class="page-curl__back"      d="M 0 0 L 100 0 L 100 0 L 0 0 Z"/>
-        <path class="page-curl__edge"      d="M 0 0 L 100 0"/>
-        <path class="page-curl__highlight" d="M 0 0 L 100 0"/>
+        <path class="page-curl__back"      d="M 0 0 L 0 0 L 0 0 Z"/>
+        <path class="page-curl__edge"      d="M 0 0 L 0 0"/>
+        <path class="page-curl__highlight" d="M 0 0 L 0 0"/>
       </svg>
     </div>
   </section>
@@ -1451,10 +1456,9 @@
     <!-- Page curl overlay -->
     <div class="page-curl" aria-hidden="true" data-curl="02">
       <svg class="page-curl__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path class="page-curl__shadow"    d="M 0 0 L 100 0 L 100 0 L 0 0 Z"/>
-        <path class="page-curl__back"      d="M 0 0 L 100 0 L 100 0 L 0 0 Z"/>
-        <path class="page-curl__edge"      d="M 0 0 L 100 0"/>
-        <path class="page-curl__highlight" d="M 0 0 L 100 0"/>
+        <path class="page-curl__back"      d="M 0 0 L 0 0 L 0 0 Z"/>
+        <path class="page-curl__edge"      d="M 0 0 L 0 0"/>
+        <path class="page-curl__highlight" d="M 0 0 L 0 0"/>
       </svg>
     </div>
   </section>
@@ -1509,10 +1513,9 @@
     <!-- Page curl overlay -->
     <div class="page-curl" aria-hidden="true" data-curl="03">
       <svg class="page-curl__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path class="page-curl__shadow"    d="M 0 0 L 100 0 L 100 0 L 0 0 Z"/>
-        <path class="page-curl__back"      d="M 0 0 L 100 0 L 100 0 L 0 0 Z"/>
-        <path class="page-curl__edge"      d="M 0 0 L 100 0"/>
-        <path class="page-curl__highlight" d="M 0 0 L 100 0"/>
+        <path class="page-curl__back"      d="M 0 0 L 0 0 L 0 0 Z"/>
+        <path class="page-curl__edge"      d="M 0 0 L 0 0"/>
+        <path class="page-curl__highlight" d="M 0 0 L 0 0"/>
       </svg>
     </div>
   </section>
@@ -1570,10 +1573,9 @@
     <!-- Page curl overlay -->
     <div class="page-curl" aria-hidden="true" data-curl="04">
       <svg class="page-curl__svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path class="page-curl__shadow"    d="M 0 0 L 100 0 L 100 0 L 0 0 Z"/>
-        <path class="page-curl__back"      d="M 0 0 L 100 0 L 100 0 L 0 0 Z"/>
-        <path class="page-curl__edge"      d="M 0 0 L 100 0"/>
-        <path class="page-curl__highlight" d="M 0 0 L 100 0"/>
+        <path class="page-curl__back"      d="M 0 0 L 0 0 L 0 0 Z"/>
+        <path class="page-curl__edge"      d="M 0 0 L 0 0"/>
+        <path class="page-curl__highlight" d="M 0 0 L 0 0"/>
       </svg>
     </div>
   </section>
@@ -1615,6 +1617,11 @@
     <div class="page-corner">— page 05 / 05 — END —</div>
   </section>
 
+  </div><!-- /.stage -->
+
+  <!-- Scroll-length driver: 1 viewport per transition (+1 to rest on last page) -->
+  <div class="deck-spacer" aria-hidden="true"></div>
+
   <script>
     /* ============ STARS ============ */
     (function() {
@@ -1652,7 +1659,6 @@
       window.addEventListener('mousedown', () => cursor.classList.add('is-click'));
       window.addEventListener('mouseup', () => cursor.classList.remove('is-click'));
 
-      // hover targets: anything with a href, button, or .planet-card
       const hoverSelectors = 'a, button, .planet-card, .channel, .boot__start, .next-page, .reason';
       function bindHover() {
         document.querySelectorAll(hoverSelectors).forEach(el => {
@@ -1662,7 +1668,6 @@
       }
       bindHover();
 
-      // approximate "coordinates" derived from cursor position
       function fmtCoord(prefix, base, val, range) {
         const v = base + (val / range) * 0.05;
         const deg = Math.floor(v);
@@ -1673,30 +1678,24 @@
       }
 
       function loop() {
-        // smooth follow
         cx += (mx - cx) * 0.18;
         cy += (my - cy) * 0.18;
         cursor.style.transform = `translate(${cx - 28}px, ${cy - 28}px)`;
 
-        // needle direction: face current motion vector
         const dx = mx - prevMx;
         const dy = my - prevMy;
         const speed = Math.hypot(dx, dy);
         if (speed > 0.5) {
-          // angle: SVG path is drawn pointing UP (tip at top), so 0deg = north
-          // we want needle's "north tip" to point IN direction of motion
           const angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
           lastAngle = angle;
           needle.style.transform = `rotate(${angle}deg)`;
         } else {
-          // ease back toward 0 (north) when idle
           lastAngle += (0 - lastAngle) * 0.04;
           needle.style.transform = `rotate(${lastAngle}deg)`;
         }
         prevMx = mx;
         prevMy = my;
 
-        // update coord readout (Tokyo-ish base)
         coordLat.textContent = fmtCoord('N', 35, my, window.innerHeight);
         coordLng.textContent = fmtCoord('E', 139, mx, window.innerWidth);
 
@@ -1705,15 +1704,12 @@
       loop();
     })();
 
-    /* ============ PARALLAX (subtle) ============ */
+    /* ============ PARALLAX (subtle, hero only) ============ */
     (function() {
       const sun = document.querySelector('.sun');
       const planet1 = document.querySelector('.planet-deco--1');
       const planet2 = document.querySelector('.planet-deco--2');
       const mountains = document.querySelector('.mountains svg');
-      const camp = document.querySelector('.camp');
-      const fire = document.querySelector('.campfire');
-      const flag = document.querySelector('.flag');
 
       let scrollY = 0;
       let ticking = false;
@@ -1724,18 +1720,12 @@
         if (planet1) planet1.style.transform = `translateY(${y * 0.15}px) translateX(${y * 0.05}px)`;
         if (planet2) planet2.style.transform = `translateY(${y * 0.18}px) translateX(${y * -0.04}px)`;
         if (mountains) mountains.style.transform = `translateY(${y * 0.08}px)`;
-        if (camp) camp.style.transform = `translateY(${y * 0.02}px)`;
-        if (fire) fire.style.transform = `translateY(${y * 0.02}px)`;
-        if (flag) flag.style.transform = `translateY(${y * 0.02}px)`;
         ticking = false;
       }
 
       window.addEventListener('scroll', () => {
-        scrollY = window.scrollY;
-        if (!ticking) {
-          requestAnimationFrame(update);
-          ticking = true;
-        }
+        scrollY = Math.min(window.scrollY, window.innerHeight);
+        if (!ticking) { requestAnimationFrame(update); ticking = true; }
       }, { passive: true });
     })();
 
@@ -1752,8 +1742,6 @@
         const progress = docHeight > 0 ? Math.min(100, (scrollTop / docHeight) * 100) : 0;
         fill.style.width = progress.toFixed(1) + '%';
         pct.textContent = 'EXP ' + Math.floor(progress) + '%';
-
-        // Level up at 20/40/60/80% (5 levels matching 5 sections)
         let lv = 1;
         if (progress >= 20) lv = 2;
         if (progress >= 40) lv = 3;
@@ -1764,10 +1752,7 @@
 
       let ticking = false;
       window.addEventListener('scroll', () => {
-        if (!ticking) {
-          requestAnimationFrame(() => { update(); ticking = false; });
-          ticking = true;
-        }
+        if (!ticking) { requestAnimationFrame(() => { update(); ticking = false; }); ticking = true; }
       }, { passive: true });
       window.addEventListener('resize', update, { passive: true });
       update();
@@ -1789,32 +1774,23 @@
         { label: '> LOADING TERRAIN', tail: 'OK' },
         { label: '> EXPLORER STATUS', tail: 'READY' }
       ];
-
       const dots = (target, totalCols = 32) => {
         const remain = totalCols - target.length;
         return remain > 0 ? '.'.repeat(remain) : ' ';
       };
-
       bootLines.forEach((entry, i) => {
         setTimeout(() => {
           const div = document.createElement('div');
           div.className = 'boot__line';
-          div.innerHTML =
-            '<span class="label">' + entry.label + '</span>' +
-            dots(entry.label) +
-            '<span class="ok">' + entry.tail + '</span>';
+          div.innerHTML = '<span class="label">' + entry.label + '</span>' + dots(entry.label) + '<span class="ok">' + entry.tail + '</span>';
           linesEl.appendChild(div);
-
           const pct = Math.round(((i + 1) / bootLines.length) * 100);
           fillEl.style.width = pct + '%';
           pctEl.textContent = 'LOADING ' + pct + '%';
         }, 280 + i * 360);
       });
-
       const readyDelay = 280 + bootLines.length * 360 + 350;
-      setTimeout(() => {
-        startEl.classList.add('is-ready');
-      }, readyDelay);
+      setTimeout(() => { startEl.classList.add('is-ready'); }, readyDelay);
 
       let dismissed = false;
       function dismissBoot() {
@@ -1825,17 +1801,10 @@
         document.body.classList.remove('boot-locked');
         setTimeout(() => { boot.style.display = 'none'; }, 900);
       }
-
       startEl.addEventListener('click', dismissBoot);
-      startEl.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); dismissBoot(); }
-      });
+      startEl.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); dismissBoot(); } });
       window.addEventListener('keydown', dismissBoot);
-      window.addEventListener('click', (e) => {
-        if (e.target.closest('#boot')) return; // click on boot itself handled
-        dismissBoot();
-      });
-      // also allow click anywhere inside boot to dismiss after ready
+      window.addEventListener('click', (e) => { if (e.target.closest('#boot')) return; dismissBoot(); });
       boot.addEventListener('click', dismissBoot);
     })();
 
@@ -1847,7 +1816,6 @@
         items.forEach(el => el.classList.add('is-revealed'));
         return;
       }
-
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
@@ -1856,114 +1824,93 @@
           }
         });
       }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
-
       items.forEach(item => observer.observe(item));
     })();
 
-    /* ============ PAGE CURL (scroll-driven SVG path interpolation) ============
-       For each .page-curl overlay, compute how far its parent section is
-       through "exiting" the viewport (0 = section just entered top of viewport,
-       1 = section completely scrolled past the top). From that progress we
-       compute four SVG path `d` attributes that together draw a curled
-       page sweeping down from the top:
-         - back     : cream-paper sheet (the back of the page that is being turned)
-         - shadow   : soft shadow falling beneath the curl edge
-         - edge     : char-colored stroke along the curve
-         - highlight: thin bright stroke (paper thickness)
-       The curl edge is a quadratic bezier whose control point bulges down
-       at mid-progress and flattens at the ends — like a real page peel. */
+    /* ============ PAGE DECK (stacked corner-peel transitions) ============ */
     (function() {
-      const curls = Array.from(document.querySelectorAll('.page-curl'));
-      if (!curls.length) return;
+      const stage = document.getElementById('stage');
+      if (!stage) return;
+      const sections = Array.from(stage.querySelectorAll(':scope > section'));
+      if (!sections.length) return;
+
+      const peelers = sections.slice(0, -1).map((section, i) => ({
+        i,
+        section,
+        curl:      section.querySelector('.page-curl'),
+        back:      section.querySelector('.page-curl__back'),
+        edge:      section.querySelector('.page-curl__edge'),
+        highlight: section.querySelector('.page-curl__highlight')
+      }));
 
       const reduceMotion = window.matchMedia &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+      function ease(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
 
-      // Cache the relevant DOM nodes per curl
-      const items = curls.map(curl => ({
-        el: curl,
-        section: curl.closest('section'),
-        back:      curl.querySelector('.page-curl__back'),
-        shadow:    curl.querySelector('.page-curl__shadow'),
-        edge:      curl.querySelector('.page-curl__edge'),
-        highlight: curl.querySelector('.page-curl__highlight')
-      }));
-
-      // Cubic ease in/out — gives organic feel to the curl progression
-      function ease(t) {
-        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      function setPeel(item, p) {
+        const { section, curl, back, edge, highlight } = item;
+        if (p <= 0.0005) {
+          section.style.clipPath = '';
+          if (curl) curl.classList.remove('is-active');
+          return;
+        }
+        if (p >= 0.9995) {
+          section.style.clipPath = 'polygon(0 0, 0 0, 0 0)';
+          if (curl) curl.classList.remove('is-active');
+          return;
+        }
+        const e = reduceMotion ? p : ease(p);
+        const k = 200 * (1 - e);
+        let clip, backD, line;
+        if (k >= 100) {
+          const a = k - 100;
+          clip  = `polygon(0% 0%, 100% 0%, 100% ${a}%, ${a}% 100%, 0% 100%)`;
+          backD = `M 100 ${a} L ${a} 100 L ${a} ${a} Z`;
+          line  = `M 100 ${a} L ${a} 100`;
+        } else {
+          clip  = `polygon(0% 0%, ${k}% 0%, 0% ${k}%)`;
+          backD = `M ${k} 0 L 0 ${k} L ${k} ${k} Z`;
+          line  = `M ${k} 0 L 0 ${k}`;
+        }
+        section.style.clipPath = clip;
+        if (back)      back.setAttribute('d', backD);
+        if (edge)      edge.setAttribute('d', line);
+        if (highlight) highlight.setAttribute('d', line);
+        if (curl)      curl.classList.add('is-active');
       }
 
       function update() {
-        const vh = window.innerHeight;
-        items.forEach(({ el, section, back, shadow, edge, highlight }) => {
-          if (!section || !back) return;
-          const rect = section.getBoundingClientRect();
-          // progress: 0 when section bottom is at/below viewport bottom;
-          // 1 when section bottom has reached viewport top.
-          const bottomFromTop = rect.bottom;
-          let progress;
-          if (bottomFromTop >= vh)      progress = 0;
-          else if (bottomFromTop <= 0)  progress = 1;
-          else                          progress = 1 - bottomFromTop / vh;
-
-          const eased = reduceMotion ? progress : ease(progress);
-
-          // Toggle visibility — only show this curl when its section is
-          // actively transitioning out of the viewport.
-          if (progress > 0.02 && progress < 0.98) {
-            if (!el.classList.contains('is-active')) el.classList.add('is-active');
-          } else {
-            if (el.classList.contains('is-active')) el.classList.remove('is-active');
-          }
-
-          // h: how far the curled sheet has come down (0-100 in viewBox units)
-          const h = eased * 100;
-          // curve bulge: peaks at mid-progress (sin curve), flattens at ends
-          const curve = Math.sin(eased * Math.PI) * 18;
-
-          // back path: cream paper sheet covering the top portion of the
-          // viewport; bottom edge is a quadratic bezier curving downward.
-          //   start (0,0) → top-right (100,0) → right edge to (100,h)
-          //   → bezier to (0,h) via control (50, h+curve)
-          back.setAttribute('d',
-            `M 0 0 L 100 0 L 100 ${h.toFixed(2)} ` +
-            `Q 50 ${(h + curve).toFixed(2)} 0 ${h.toFixed(2)} Z`);
-
-          // shadow: a soft band that follows the curl curve, displaced
-          // slightly below it. CSS blurs it for a cast-shadow feel.
-          shadow.setAttribute('d',
-            `M 0 ${(h + 2).toFixed(2)} ` +
-            `Q 50 ${(h + curve + 6).toFixed(2)} 100 ${(h + 2).toFixed(2)} ` +
-            `L 100 ${(h + curve + 14).toFixed(2)} ` +
-            `Q 50 ${(h + curve + 18).toFixed(2)} 0 ${(h + curve + 14).toFixed(2)} Z`);
-
-          // edge: char/sepia stroke along the very curve line
-          edge.setAttribute('d',
-            `M 0 ${h.toFixed(2)} ` +
-            `Q 50 ${(h + curve).toFixed(2)} 100 ${h.toFixed(2)}`);
-
-          // highlight: subtle bright stroke just above the edge (paper thickness)
-          highlight.setAttribute('d',
-            `M 0 ${(h - 1).toFixed(2)} ` +
-            `Q 50 ${(h + curve - 2).toFixed(2)} 100 ${(h - 1).toFixed(2)}`);
-
-          // Track progress as CSS var (useful for future tweaks)
-          el.style.setProperty('--curl-progress', eased.toFixed(3));
+        const H  = window.innerHeight;
+        const sx = window.scrollY || 0;
+        peelers.forEach(item => {
+          const p = clamp((sx - item.i * H) / H, 0, 1);
+          setPeel(item, p);
         });
       }
 
       let ticking = false;
       function onScroll() {
-        if (!ticking) {
-          requestAnimationFrame(() => { update(); ticking = false; });
-          ticking = true;
-        }
+        if (!ticking) { requestAnimationFrame(() => { update(); ticking = false; }); ticking = true; }
       }
-
       window.addEventListener('scroll', onScroll, { passive: true });
       window.addEventListener('resize', onScroll, { passive: true });
       update();
+
+      const idToIndex = {};
+      sections.forEach((s, i) => { idToIndex['#' + s.id] = i; });
+      function wireLinks(selector) {
+        document.querySelectorAll(selector).forEach(a => {
+          a.addEventListener('click', (ev) => {
+            const href = a.getAttribute('href') || '';
+            if (!(href in idToIndex)) return;
+            ev.preventDefault();
+            window.scrollTo({ top: idToIndex[href] * window.innerHeight, behavior: 'smooth' });
+          });
+        });
+      }
+      wireLinks('.nav a');
+      wireLinks('.next-page');
     })();
   </script>
 </body>
